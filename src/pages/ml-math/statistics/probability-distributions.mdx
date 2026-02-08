@@ -1,0 +1,78 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Probability Distributions
+---
+
+import Callout from '../../../components/Callout.astro';
+import Example from '../../../components/Example.astro';
+import Formula from '../../../components/Formula.astro';
+
+# Probability Distributions
+
+A probability distribution describes how the values of a random variable are distributed. Understanding distributions is essential for machine learning, as many algorithms assume specific distributions for data or model parameters.
+
+## Discrete vs Continuous
+
+<Callout type="info" title="Two Types of Distributions">
+- **Discrete distributions**: Variables can only take specific values (e.g., number of customers)
+- **Continuous distributions**: Variables can take any value within a range (e.g., height, temperature)
+</Callout>
+
+## The Normal Distribution
+
+<Callout type="definition" title="Definition: Normal Distribution">
+The **normal distribution** (Gaussian distribution) is a continuous probability distribution characterized by its bell-shaped curve. It's defined by two parameters: mean ($\mu$) and standard deviation ($\sigma$).
+</Callout>
+
+<Formula name="Normal Distribution PDF">
+$$f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}$$
+</Formula>
+
+### Properties
+
+- Symmetric around the mean
+- Mean = Median = Mode
+- 68% of data falls within 1 standard deviation
+- 95% of data falls within 2 standard deviations
+- 99.7% of data falls within 3 standard deviations
+
+<Callout type="tip" title="The 68-95-99.7 Rule">
+This is also called the **empirical rule** and is crucial for understanding how data spreads in a normal distribution.
+</Callout>
+
+## The Binomial Distribution
+
+<Callout type="definition" title="Definition: Binomial Distribution">
+The **binomial distribution** models the number of successes in $n$ independent trials, each with probability $p$ of success.
+</Callout>
+
+<Formula name="Binomial PMF">
+$$P(X = k) = \binom{n}{k} p^k (1-p)^{n-k}$$
+</Formula>
+
+<Example title="Coin Flips">
+What's the probability of getting exactly 3 heads in 5 coin flips?
+
+$n = 5$, $k = 3$, $p = 0.5$
+
+$$P(X = 3) = \binom{5}{3} (0.5)^3 (0.5)^2 = 10 \times 0.125 \times 0.25 = 0.3125$$
+</Example>
+
+## The Poisson Distribution
+
+<Callout type="definition" title="Definition: Poisson Distribution">
+The **Poisson distribution** models the number of events occurring in a fixed interval, given a known average rate $\lambda$.
+</Callout>
+
+<Formula name="Poisson PMF">
+$$P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}$$
+</Formula>
+
+Common applications:
+- Number of website visitors per hour
+- Number of calls to a call center
+- Number of defects in a product
+
+---
+
+**Next:** [Hypothesis Testing](/ml-math/statistics/hypothesis-testing)

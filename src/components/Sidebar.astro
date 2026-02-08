@@ -1,0 +1,142 @@
+---
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = '' } = Astro.props;
+
+const navigation = [
+  {
+    title: 'Statistics',
+    items: [
+      { title: 'Basic Statistics', href: '/ml-math/statistics/basic-statistics' },
+      { title: 'Probability Distributions', href: '/ml-math/statistics/probability-distributions' },
+      { title: 'Hypothesis Testing', href: '/ml-math/statistics/hypothesis-testing' },
+    ],
+  },
+  {
+    title: 'Linear Algebra',
+    items: [
+      { title: 'Vectors & Matrices', href: '/ml-math/linear-algebra/vectors-matrices' },
+      { title: 'Matrix Operations', href: '/ml-math/linear-algebra/matrix-operations' },
+      { title: 'Eigenvalues', href: '/ml-math/linear-algebra/eigenvalues' },
+    ],
+  },
+  {
+    title: 'Calculus',
+    items: [
+      { title: 'Derivatives', href: '/ml-math/calculus/derivatives' },
+      { title: 'Gradients', href: '/ml-math/calculus/gradients' },
+      { title: 'Chain Rule', href: '/ml-math/calculus/chain-rule' },
+    ],
+  },
+];
+
+function isActive(href: string) {
+  return currentPath === href;
+}
+---
+
+<aside class="sidebar">
+  <div class="sidebar-content">
+    {navigation.map((section) => (
+      <div class="nav-section">
+        <h3 class="section-title">{section.title}</h3>
+        <ul class="nav-list">
+          {section.items.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class:list={['nav-item', { active: isActive(item.href) }]}
+              >
+                {item.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+</aside>
+
+<style>
+  .sidebar {
+    width: 280px;
+    background-color: var(--zinc-900);
+    border-right: 1px solid var(--zinc-800);
+    height: calc(100vh - 60px);
+    position: sticky;
+    top: 60px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+
+  .sidebar-content {
+    padding: 1.5rem;
+  }
+
+  .nav-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    color: var(--zinc-400);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    padding: 0;
+    border: none;
+  }
+
+  .nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-list li {
+    margin: 0;
+  }
+
+  .nav-item {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: var(--zinc-300);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .nav-item:hover {
+    background-color: var(--zinc-800);
+    color: var(--zinc-100);
+    text-decoration: none;
+  }
+
+  .nav-item.active {
+    background-color: var(--zinc-800);
+    color: var(--emerald-500);
+    font-weight: 500;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+      height: auto;
+      position: static;
+      border-right: none;
+      border-bottom: 1px solid var(--zinc-800);
+    }
+
+    .sidebar-content {
+      padding: 1rem;
+    }
+
+    .nav-section {
+      margin-bottom: 1rem;
+    }
+  }
+</style>

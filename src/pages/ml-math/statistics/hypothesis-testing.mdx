@@ -1,0 +1,53 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Hypothesis Testing
+---
+
+import Callout from '../../../components/Callout.astro';
+import Formula from '../../../components/Formula.astro';
+
+# Hypothesis Testing
+
+Hypothesis testing is a statistical method for making decisions about populations based on sample data. It's fundamental to A/B testing, model validation, and scientific research.
+
+## The Framework
+
+<Callout type="definition" title="Null and Alternative Hypotheses">
+- **Null Hypothesis ($H_0$)**: The default assumption (e.g., "there is no effect")
+- **Alternative Hypothesis ($H_1$ or $H_a$)**: What we're trying to prove (e.g., "there is an effect")
+</Callout>
+
+## P-Values
+
+<Callout type="definition" title="Definition: P-Value">
+The **p-value** is the probability of observing results at least as extreme as the current results, assuming the null hypothesis is true.
+</Callout>
+
+<Callout type="warning" title="Common Misconception">
+A p-value is NOT the probability that the null hypothesis is true. It's the probability of seeing the data given that $H_0$ is true.
+</Callout>
+
+## Type I and Type II Errors
+
+| | $H_0$ is True | $H_0$ is False |
+|---|---|---|
+| Reject $H_0$ | Type I Error (α) | Correct |
+| Fail to Reject $H_0$ | Correct | Type II Error (β) |
+
+- **Type I Error**: False positive (rejecting a true null hypothesis)
+- **Type II Error**: False negative (failing to reject a false null hypothesis)
+
+## Statistical Significance
+
+The significance level $\alpha$ (typically 0.05) is the threshold for rejecting $H_0$:
+
+- If p-value < α → Reject $H_0$
+- If p-value ≥ α → Fail to reject $H_0$
+
+<Callout type="tip" title="Remember">
+"Statistical significance" doesn't mean "practically important." Always consider effect size alongside p-values.
+</Callout>
+
+---
+
+**Previous:** [Probability Distributions](/ml-math/statistics/probability-distributions)

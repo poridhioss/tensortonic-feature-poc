@@ -1,0 +1,329 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Derivative as Tangent Line</h3>
+  <p class="viz-description">Drag the point along the curve to see the tangent line and its slope (derivative).</p>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Function: </label>
+      <select id="func-select">
+        <option value="x2">f(x) = x2</option>
+        <option value="x3">f(x) = x3</option>
+        <option value="sin">f(x) = sin(x)</option>
+        <option value="exp">f(x) = ex</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>x = <span id="x-value">1.0</span></label>
+      <input type="range" id="x-slider" min="-3" max="3" step="0.1" value="1" />
+    </div>
+  </div>
+
+  <div class="chart-area">
+    <canvas id="derivative-chart" width="600" height="350"></canvas>
+  </div>
+
+  <div class="result-row">
+    <div class="result-box">
+      <span class="result-label">f(x)</span>
+      <span class="result-value" id="fx-value">1.00</span>
+    </div>
+    <div class="result-box highlight">
+      <span class="result-label">f'(x) = slope</span>
+      <span class="result-value" id="slope-value">2.00</span>
+    </div>
+    <div class="result-box">
+      <span class="result-label">Tangent equation</span>
+      <span class="result-value" id="tangent-eq">y = 2x - 1</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .controls {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .control-group {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .control-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+    margin-bottom: 0.5rem;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--zinc-800);
+    border: 1px solid var(--zinc-700);
+    border-radius: 6px;
+    color: var(--zinc-100);
+    font-size: 0.9rem;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: var(--zinc-700);
+    border-radius: 3px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--cyan-500);
+    cursor: pointer;
+  }
+
+  .chart-area {
+    margin-bottom: 1rem;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .result-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .result-box {
+    flex: 1;
+    min-width: 120px;
+    background: var(--zinc-800);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .result-box.highlight {
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid var(--cyan-500);
+  }
+
+  .result-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--zinc-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .result-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    font-family: monospace;
+  }
+
+  .highlight .result-value {
+    color: var(--cyan-500);
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('derivative-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const funcSelect = document.getElementById('func-select') as HTMLSelectElement;
+  const xSlider = document.getElementById('x-slider') as HTMLInputElement;
+  const xValueDisplay = document.getElementById('x-value')!;
+  const fxValue = document.getElementById('fx-value')!;
+  const slopeValue = document.getElementById('slope-value')!;
+  const tangentEq = document.getElementById('tangent-eq')!;
+
+  const functions: Record<string, { f: (x: number) => number; df: (x: number) => number; name: string }> = {
+    x2: { f: x => x * x, df: x => 2 * x, name: 'x2' },
+    x3: { f: x => x * x * x, df: x => 3 * x * x, name: 'x3' },
+    sin: { f: x => Math.sin(x), df: x => Math.cos(x), name: 'sin(x)' },
+    exp: { f: x => Math.exp(x), df: x => Math.exp(x), name: 'ex' }
+  };
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+
+    const funcKey = funcSelect.value;
+    const { f, df } = functions[funcKey];
+    const x0 = parseFloat(xSlider.value);
+
+    ctx.clearRect(0, 0, width, height);
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // Determine scale
+    const xMin = -4, xMax = 4;
+    let yMin = -5, yMax = 10;
+
+    if (funcKey === 'sin') { yMin = -2; yMax = 2; }
+    if (funcKey === 'exp') { yMin = -1; yMax = 15; }
+
+    const toCanvasX = (x: number) => padding.left + ((x - xMin) / (xMax - xMin)) * chartWidth;
+    const toCanvasY = (y: number) => padding.top + chartHeight - ((y - yMin) / (yMax - yMin)) * chartHeight;
+
+    // Draw grid
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 1;
+
+    // Vertical grid lines
+    for (let x = Math.ceil(xMin); x <= xMax; x++) {
+      ctx.beginPath();
+      ctx.moveTo(toCanvasX(x), padding.top);
+      ctx.lineTo(toCanvasX(x), height - padding.bottom);
+      ctx.stroke();
+    }
+
+    // Horizontal grid lines
+    for (let y = Math.ceil(yMin); y <= yMax; y += funcKey === 'sin' ? 0.5 : 2) {
+      ctx.beginPath();
+      ctx.moveTo(padding.left, toCanvasY(y));
+      ctx.lineTo(width - padding.right, toCanvasY(y));
+      ctx.stroke();
+    }
+
+    // Draw axes
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 2;
+
+    // X-axis
+    if (yMin <= 0 && yMax >= 0) {
+      ctx.beginPath();
+      ctx.moveTo(padding.left, toCanvasY(0));
+      ctx.lineTo(width - padding.right, toCanvasY(0));
+      ctx.stroke();
+    }
+
+    // Y-axis
+    if (xMin <= 0 && xMax >= 0) {
+      ctx.beginPath();
+      ctx.moveTo(toCanvasX(0), padding.top);
+      ctx.lineTo(toCanvasX(0), height - padding.bottom);
+      ctx.stroke();
+    }
+
+    // Draw function curve
+    ctx.beginPath();
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.lineWidth = 3;
+
+    for (let px = 0; px <= chartWidth; px++) {
+      const x = xMin + (px / chartWidth) * (xMax - xMin);
+      const y = f(x);
+      const canvasX = padding.left + px;
+      const canvasY = toCanvasY(y);
+
+      if (px === 0) ctx.moveTo(canvasX, canvasY);
+      else ctx.lineTo(canvasX, canvasY);
+    }
+    ctx.stroke();
+
+    // Calculate values at x0
+    const y0 = f(x0);
+    const slope = df(x0);
+
+    // Draw tangent line
+    ctx.beginPath();
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 2;
+
+    const tangentX1 = xMin;
+    const tangentY1 = y0 + slope * (tangentX1 - x0);
+    const tangentX2 = xMax;
+    const tangentY2 = y0 + slope * (tangentX2 - x0);
+
+    ctx.moveTo(toCanvasX(tangentX1), toCanvasY(tangentY1));
+    ctx.lineTo(toCanvasX(tangentX2), toCanvasY(tangentY2));
+    ctx.stroke();
+
+    // Draw point on curve
+    ctx.beginPath();
+    ctx.fillStyle = '#06b6d4';
+    ctx.arc(toCanvasX(x0), toCanvasY(y0), 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Point label
+    ctx.fillStyle = '#06b6d4';
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`(${x0.toFixed(1)}, ${y0.toFixed(2)})`, toCanvasX(x0) + 12, toCanvasY(y0) - 10);
+
+    // Slope indicator (small right triangle)
+    if (Math.abs(slope) < 10) {
+      const dx = 0.5;
+      const dy = slope * dx;
+      ctx.beginPath();
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(toCanvasX(x0), toCanvasY(y0));
+      ctx.lineTo(toCanvasX(x0 + dx), toCanvasY(y0));
+      ctx.lineTo(toCanvasX(x0 + dx), toCanvasY(y0 + dy));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.fillText('1', toCanvasX(x0 + dx/2), toCanvasY(y0) + 15);
+      ctx.fillText(slope.toFixed(1), toCanvasX(x0 + dx) + 5, toCanvasY(y0 + dy/2));
+    }
+
+    // Update displays
+    xValueDisplay.textContent = x0.toFixed(1);
+    fxValue.textContent = y0.toFixed(2);
+    slopeValue.textContent = slope.toFixed(2);
+
+    const b = y0 - slope * x0;
+    const bStr = b >= 0 ? `+ ${b.toFixed(2)}` : `- ${Math.abs(b).toFixed(2)}`;
+    tangentEq.textContent = `y = ${slope.toFixed(2)}x ${bStr}`;
+
+    // Axis labels
+    ctx.fillStyle = '#71717a';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (let x = Math.ceil(xMin); x <= xMax; x++) {
+      ctx.fillText(x.toString(), toCanvasX(x), height - 15);
+    }
+  }
+
+  funcSelect.addEventListener('change', draw);
+  xSlider.addEventListener('input', draw);
+  draw();
+</script>

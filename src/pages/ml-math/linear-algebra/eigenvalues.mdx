@@ -1,0 +1,44 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Eigenvalues
+---
+
+import Callout from '../../../components/Callout.astro';
+import Formula from '../../../components/Formula.astro';
+
+# Eigenvalues and Eigenvectors
+
+Eigenvalues and eigenvectors are fundamental concepts used in PCA, spectral clustering, and understanding linear transformations.
+
+## Definitions
+
+<Callout type="definition" title="Eigenvector and Eigenvalue">
+For a square matrix $\mathbf{A}$, if:
+$$\mathbf{A}\mathbf{v} = \lambda\mathbf{v}$$
+then $\mathbf{v}$ is an **eigenvector** and $\lambda$ is its corresponding **eigenvalue**.
+</Callout>
+
+<Callout type="info" title="Intuition">
+Eigenvectors are directions that remain unchanged (except for scaling) when transformed by the matrix. The eigenvalue tells us the scaling factor.
+</Callout>
+
+## Finding Eigenvalues
+
+<Formula name="Characteristic Equation">
+$$\det(\mathbf{A} - \lambda\mathbf{I}) = 0$$
+</Formula>
+
+Solve this equation for $\lambda$ to find the eigenvalues.
+
+## ML Applications
+
+<Callout type="tip" title="Where Eigenvalues Appear">
+- **PCA**: Eigenvalues indicate variance explained by each principal component
+- **PageRank**: Uses the dominant eigenvector
+- **Spectral clustering**: Uses eigenvectors of the Laplacian matrix
+- **Stability analysis**: Eigenvalues determine system stability
+</Callout>
+
+---
+
+**Previous:** [Matrix Operations](/ml-math/linear-algebra/matrix-operations)

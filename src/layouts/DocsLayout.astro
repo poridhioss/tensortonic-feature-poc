@@ -1,0 +1,64 @@
+---
+import Sidebar from '../components/Sidebar.astro';
+import Header from '../components/Header.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  currentPath?: string;
+}
+
+const { title, description, currentPath } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | ML Math</title>
+    <meta name="description" content={description || 'Master Machine Learning Mathematics'} />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <Header />
+    <div class="layout">
+      <Sidebar currentPath={currentPath} />
+      <main class="content">
+        <article class="prose">
+          <slot />
+        </article>
+      </main>
+    </div>
+  </body>
+</html>
+
+<style>
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 60px);
+  }
+
+  .content {
+    flex: 1;
+    padding: 2rem 3rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .prose {
+    max-width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .layout {
+      flex-direction: column;
+    }
+
+    .content {
+      padding: 1.5rem;
+    }
+  }
+</style>

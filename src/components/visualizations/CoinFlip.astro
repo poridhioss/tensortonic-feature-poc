@@ -1,0 +1,296 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Law of Large Numbers - Coin Flip Simulator</h3>
+  <p class="viz-description">Watch how the proportion of heads converges to 0.5 as the number of flips increases.</p>
+
+  <div class="controls">
+    <button id="flip-1" class="flip-btn">Flip 1</button>
+    <button id="flip-10" class="flip-btn">Flip 10</button>
+    <button id="flip-100" class="flip-btn">Flip 100</button>
+    <button id="flip-1000" class="flip-btn">Flip 1000</button>
+    <button id="reset-btn" class="reset-btn">Reset</button>
+  </div>
+
+  <div class="chart-area">
+    <canvas id="coin-chart" width="600" height="300"></canvas>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <span class="stat-label">Total Flips</span>
+      <span class="stat-value" id="total-flips">0</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Heads</span>
+      <span class="stat-value" id="heads-count">0</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-label">Tails</span>
+      <span class="stat-value" id="tails-count">0</span>
+    </div>
+    <div class="stat-box highlight">
+      <span class="stat-label">Proportion Heads</span>
+      <span class="stat-value" id="proportion">0.000</span>
+    </div>
+  </div>
+
+  <div class="insight" id="insight">
+    Start flipping to see the Law of Large Numbers in action!
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .flip-btn {
+    padding: 0.6rem 1rem;
+    background: var(--cyan-500);
+    color: var(--zinc-950);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .flip-btn:hover { background: var(--cyan-400); }
+
+  .reset-btn {
+    padding: 0.6rem 1rem;
+    background: var(--zinc-700);
+    color: var(--zinc-100);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .chart-area { margin-bottom: 1rem; }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .stat-box {
+    flex: 1;
+    min-width: 100px;
+    background: var(--zinc-800);
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-box.highlight {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid var(--emerald-500);
+  }
+
+  .stat-label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--zinc-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+  }
+
+  .highlight .stat-value { color: var(--emerald-500); }
+
+  .insight {
+    background: var(--zinc-800);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    color: var(--zinc-300);
+    font-size: 0.9rem;
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('coin-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const totalFlipsDisplay = document.getElementById('total-flips')!;
+  const headsCountDisplay = document.getElementById('heads-count')!;
+  const tailsCountDisplay = document.getElementById('tails-count')!;
+  const proportionDisplay = document.getElementById('proportion')!;
+  const insight = document.getElementById('insight')!;
+
+  let heads = 0;
+  let tails = 0;
+  let proportionHistory: number[] = [];
+
+  function flip(n: number) {
+    for (let i = 0; i < n; i++) {
+      if (Math.random() < 0.5) heads++;
+      else tails++;
+
+      const total = heads + tails;
+      if (total <= 100 || total % Math.ceil(total / 100) === 0) {
+        proportionHistory.push(heads / total);
+      }
+    }
+    updateDisplay();
+    draw();
+  }
+
+  function updateDisplay() {
+    const total = heads + tails;
+    totalFlipsDisplay.textContent = total.toString();
+    headsCountDisplay.textContent = heads.toString();
+    tailsCountDisplay.textContent = tails.toString();
+
+    const proportion = total > 0 ? heads / total : 0;
+    proportionDisplay.textContent = proportion.toFixed(3);
+
+    // Update insight
+    if (total === 0) {
+      insight.textContent = 'Start flipping to see the Law of Large Numbers in action!';
+    } else if (total < 10) {
+      insight.textContent = 'With few flips, the proportion can vary wildly from 0.5.';
+    } else if (total < 100) {
+      insight.textContent = 'Notice how the proportion fluctuates but starts to stabilize.';
+    } else if (total < 1000) {
+      insight.textContent = 'As n increases, the proportion gets closer to the true probability (0.5).';
+    } else {
+      insight.textContent = `With ${total} flips, the proportion is very close to 0.5. This is the Law of Large Numbers!`;
+    }
+  }
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+
+    ctx.clearRect(0, 0, width, height);
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // Y axis: 0 to 1
+    const toCanvasY = (y: number) => padding.top + chartHeight - y * chartHeight;
+
+    // Draw reference line at 0.5
+    ctx.beginPath();
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.moveTo(padding.left, toCanvasY(0.5));
+    ctx.lineTo(width - padding.right, toCanvasY(0.5));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#10b981';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.fillText('Expected: 0.5', width - padding.right - 80, toCanvasY(0.5) - 8);
+
+    // Draw proportion line
+    if (proportionHistory.length > 0) {
+      ctx.beginPath();
+      ctx.strokeStyle = '#06b6d4';
+      ctx.lineWidth = 2;
+
+      proportionHistory.forEach((p, i) => {
+        const x = padding.left + (i / (proportionHistory.length - 1 || 1)) * chartWidth;
+        const y = toCanvasY(p);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Current point
+      const lastX = padding.left + chartWidth;
+      const lastY = toCanvasY(proportionHistory[proportionHistory.length - 1]);
+      ctx.beginPath();
+      ctx.fillStyle = '#06b6d4';
+      ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, height - padding.bottom);
+    ctx.lineTo(width - padding.right, height - padding.bottom);
+    ctx.stroke();
+
+    // Y-axis labels
+    ctx.fillStyle = '#71717a';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    [0, 0.25, 0.5, 0.75, 1].forEach(y => {
+      ctx.fillText(y.toFixed(2), padding.left - 5, toCanvasY(y) + 4);
+    });
+
+    // X-axis label
+    ctx.textAlign = 'center';
+    ctx.fillText('Number of Flips', width / 2, height - 10);
+
+    // Y-axis label
+    ctx.save();
+    ctx.translate(15, height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Proportion Heads', 0, 0);
+    ctx.restore();
+  }
+
+  function reset() {
+    heads = 0;
+    tails = 0;
+    proportionHistory = [];
+    updateDisplay();
+    draw();
+  }
+
+  document.getElementById('flip-1')!.addEventListener('click', () => flip(1));
+  document.getElementById('flip-10')!.addEventListener('click', () => flip(10));
+  document.getElementById('flip-100')!.addEventListener('click', () => flip(100));
+  document.getElementById('flip-1000')!.addEventListener('click', () => flip(1000));
+  document.getElementById('reset-btn')!.addEventListener('click', reset);
+
+  draw();
+</script>

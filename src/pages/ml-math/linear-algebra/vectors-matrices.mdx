@@ -1,0 +1,52 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Vectors & Matrices
+---
+
+import Callout from '../../../components/Callout.astro';
+import Formula from '../../../components/Formula.astro';
+
+# Vectors and Matrices
+
+Linear algebra is the language of machine learning. Nearly every ML algorithm can be expressed in terms of vectors and matrices, making them essential concepts to master.
+
+## Vectors
+
+<Callout type="definition" title="Definition: Vector">
+A **vector** is an ordered list of numbers. In ML, we typically work with column vectors.
+</Callout>
+
+<Formula name="Column Vector">
+$$\mathbf{v} = \begin{bmatrix} v_1 \\ v_2 \\ \vdots \\ v_n \end{bmatrix}$$
+</Formula>
+
+### Vector Operations
+
+**Addition:** Add corresponding elements
+$$\mathbf{a} + \mathbf{b} = \begin{bmatrix} a_1 + b_1 \\ a_2 + b_2 \end{bmatrix}$$
+
+**Scalar multiplication:** Multiply each element by a scalar
+$$c\mathbf{v} = \begin{bmatrix} cv_1 \\ cv_2 \end{bmatrix}$$
+
+**Dot product:**
+$$\mathbf{a} \cdot \mathbf{b} = \sum_{i=1}^{n} a_i b_i$$
+
+## Matrices
+
+<Callout type="definition" title="Definition: Matrix">
+A **matrix** is a 2D array of numbers with $m$ rows and $n$ columns.
+</Callout>
+
+<Formula name="Matrix">
+$$\mathbf{A} = \begin{bmatrix} a_{11} & a_{12} & \cdots & a_{1n} \\ a_{21} & a_{22} & \cdots & a_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ a_{m1} & a_{m2} & \cdots & a_{mn} \end{bmatrix}$$
+</Formula>
+
+<Callout type="tip" title="ML Applications">
+- **Weight matrices** in neural networks
+- **Feature matrices** where rows are samples, columns are features
+- **Covariance matrices** for understanding feature relationships
+</Callout>
+
+---
+
+**Next:** [Matrix Operations](/ml-math/linear-algebra/matrix-operations)

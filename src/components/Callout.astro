@@ -1,0 +1,55 @@
+---
+interface Props {
+  type?: 'info' | 'tip' | 'warning' | 'danger' | 'definition';
+  title?: string;
+}
+
+const { type = 'info', title } = Astro.props;
+
+const styles = {
+  info: { border: 'var(--cyan-500)', bg: 'rgba(6, 182, 212, 0.1)' },
+  tip: { border: 'var(--emerald-500)', bg: 'rgba(16, 185, 129, 0.1)' },
+  warning: { border: 'var(--amber-500)', bg: 'rgba(245, 158, 11, 0.1)' },
+  danger: { border: 'var(--rose-500)', bg: 'rgba(244, 63, 94, 0.1)' },
+  definition: { border: 'var(--violet-500)', bg: 'rgba(139, 92, 246, 0.1)' },
+};
+
+const currentStyle = styles[type];
+---
+
+<div
+  class="callout"
+  style={`border-color: ${currentStyle.border}; background-color: ${currentStyle.bg};`}
+>
+  {title && (
+    <div class="callout-title">
+      {title}
+    </div>
+  )}
+  <div class="callout-content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .callout {
+    border-left: 4px solid;
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout-title {
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin-bottom: 0.5rem;
+  }
+
+  .callout-content {
+    color: var(--zinc-300);
+  }
+
+  .callout-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

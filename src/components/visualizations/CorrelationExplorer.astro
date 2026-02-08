@@ -1,0 +1,252 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Correlation Explorer</h3>
+  <p class="viz-description">Adjust the correlation coefficient (r) to see how it affects the relationship between variables.</p>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Correlation (r): <span id="r-value" class="r-display">0.00</span></label>
+      <input type="range" id="r-slider" min="-1" max="1" step="0.01" value="0" />
+      <div class="r-labels">
+        <span>-1 (Perfect Negative)</span>
+        <span>+1 (Perfect Positive)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-area">
+    <canvas id="correlation-chart" width="500" height="400"></canvas>
+  </div>
+
+  <div class="interpretation" id="interpretation">
+    No correlation: Variables are not linearly related.
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .controls {
+    margin-bottom: 1.5rem;
+  }
+
+  .control-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+    margin-bottom: 0.5rem;
+  }
+
+  .r-display {
+    font-weight: 700;
+    color: var(--cyan-500);
+    font-size: 1.1rem;
+  }
+
+  .control-group input[type="range"] {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, #f43f5e 0%, #71717a 50%, #10b981 100%);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .control-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .r-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--zinc-500);
+    margin-top: 0.5rem;
+  }
+
+  .chart-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .interpretation {
+    background-color: var(--zinc-800);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    color: var(--zinc-300);
+    font-size: 0.9rem;
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('correlation-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const rSlider = document.getElementById('r-slider') as HTMLInputElement;
+  const rValue = document.getElementById('r-value')!;
+  const interpretation = document.getElementById('interpretation')!;
+
+  // Generate correlated data points
+  function generateData(r: number, n: number = 100): {x: number, y: number}[] {
+    const data: {x: number, y: number}[] = [];
+
+    for (let i = 0; i < n; i++) {
+      // Box-Muller transform for normal distribution
+      const u1 = Math.random();
+      const u2 = Math.random();
+      const z1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      const z2 = Math.sqrt(-2 * Math.log(u1)) * Math.sin(2 * Math.PI * u2);
+
+      const x = z1;
+      const y = r * z1 + Math.sqrt(1 - r * r) * z2;
+
+      data.push({ x, y });
+    }
+
+    return data;
+  }
+
+  let currentData = generateData(0);
+
+  function draw() {
+    const r = parseFloat(rSlider.value);
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 30, right: 30, bottom: 50, left: 50 };
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Update display
+    rValue.textContent = r.toFixed(2);
+    rValue.style.color = r > 0 ? '#10b981' : r < 0 ? '#f43f5e' : '#71717a';
+
+    // Update interpretation
+    const absR = Math.abs(r);
+    let interp = '';
+    if (absR < 0.1) interp = 'No correlation: Variables are not linearly related.';
+    else if (absR < 0.3) interp = 'Weak correlation: Slight linear relationship.';
+    else if (absR < 0.5) interp = 'Moderate correlation: Noticeable linear relationship.';
+    else if (absR < 0.7) interp = 'Strong correlation: Clear linear relationship.';
+    else if (absR < 0.9) interp = 'Very strong correlation: Strong linear relationship.';
+    else interp = 'Near perfect correlation: Almost perfect linear relationship.';
+
+    if (r < 0 && absR >= 0.1) interp = interp.replace('correlation', 'negative correlation');
+    else if (r > 0 && absR >= 0.1) interp = interp.replace('correlation', 'positive correlation');
+
+    interpretation.textContent = interp;
+
+    // Regenerate data
+    currentData = generateData(r);
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // Draw axes
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 1;
+
+    // X-axis
+    ctx.beginPath();
+    ctx.moveTo(padding.left, height - padding.bottom);
+    ctx.lineTo(width - padding.right, height - padding.bottom);
+    ctx.stroke();
+
+    // Y-axis
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, height - padding.bottom);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#71717a';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('X', width / 2, height - 10);
+
+    ctx.save();
+    ctx.translate(15, height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Y', 0, 0);
+    ctx.restore();
+
+    // Draw regression line
+    if (Math.abs(r) > 0.01) {
+      ctx.beginPath();
+      ctx.strokeStyle = r > 0 ? '#10b981' : '#f43f5e';
+      ctx.lineWidth = 2;
+
+      const x1 = -3;
+      const x2 = 3;
+      const y1 = r * x1;
+      const y2 = r * x2;
+
+      const px1 = padding.left + ((x1 + 3) / 6) * chartWidth;
+      const py1 = padding.top + chartHeight - ((y1 + 3) / 6) * chartHeight;
+      const px2 = padding.left + ((x2 + 3) / 6) * chartWidth;
+      const py2 = padding.top + chartHeight - ((y2 + 3) / 6) * chartHeight;
+
+      ctx.moveTo(px1, py1);
+      ctx.lineTo(px2, py2);
+      ctx.stroke();
+    }
+
+    // Draw points
+    currentData.forEach(point => {
+      const px = padding.left + ((point.x + 3) / 6) * chartWidth;
+      const py = padding.top + chartHeight - ((point.y + 3) / 6) * chartHeight;
+
+      // Clamp to chart area
+      if (px >= padding.left && px <= width - padding.right &&
+          py >= padding.top && py <= height - padding.bottom) {
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(6, 182, 212, 0.7)';
+        ctx.arc(px, py, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    // R value display on chart
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 16px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`r = ${r.toFixed(2)}`, width - padding.right - 10, padding.top + 20);
+  }
+
+  rSlider.addEventListener('input', draw);
+  draw();
+</script>

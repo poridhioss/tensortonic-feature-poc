@@ -1,0 +1,49 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Matrix Operations
+---
+
+import Callout from '../../../components/Callout.astro';
+import Formula from '../../../components/Formula.astro';
+
+# Matrix Operations
+
+Understanding matrix operations is crucial for implementing and understanding ML algorithms.
+
+## Matrix Multiplication
+
+<Callout type="definition" title="Matrix Multiplication">
+For matrices $\mathbf{A}$ ($m \times n$) and $\mathbf{B}$ ($n \times p$), the product $\mathbf{C} = \mathbf{AB}$ has dimensions $m \times p$.
+</Callout>
+
+<Formula name="Matrix Multiplication">
+$$C_{ij} = \sum_{k=1}^{n} A_{ik} B_{kj}$$
+</Formula>
+
+<Callout type="warning" title="Order Matters">
+Matrix multiplication is **not commutative**: $\mathbf{AB} \neq \mathbf{BA}$ in general.
+</Callout>
+
+## Transpose
+
+The transpose $\mathbf{A}^T$ flips a matrix over its diagonal:
+
+$$(A^T)_{ij} = A_{ji}$$
+
+## Inverse
+
+<Callout type="definition" title="Matrix Inverse">
+For a square matrix $\mathbf{A}$, if $\mathbf{A}^{-1}$ exists:
+$$\mathbf{A}\mathbf{A}^{-1} = \mathbf{A}^{-1}\mathbf{A} = \mathbf{I}$$
+</Callout>
+
+<Callout type="tip" title="ML Applications">
+Matrix inversion is used in:
+- Solving linear systems
+- Linear regression (normal equations)
+- Computing covariance matrices
+</Callout>
+
+---
+
+**Next:** [Eigenvalues](/ml-math/linear-algebra/eigenvalues)

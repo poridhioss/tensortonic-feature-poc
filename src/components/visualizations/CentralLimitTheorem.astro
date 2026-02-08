@@ -1,0 +1,372 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Central Limit Theorem</h3>
+  <p class="viz-description">Watch how the distribution of sample means approaches a normal distribution as sample size increases.</p>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Sample Size (n): <span id="n-value">5</span></label>
+      <input type="range" id="n-slider" min="1" max="50" step="1" value="5" />
+    </div>
+    <button id="sample-btn" class="sample-btn">Draw 100 Samples</button>
+    <button id="reset-btn" class="reset-btn">Reset</button>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-box">
+      <h4>Original Population (Uniform)</h4>
+      <canvas id="population-chart" width="280" height="200"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>Distribution of Sample Means</h4>
+      <canvas id="means-chart" width="280" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-item">
+      <span class="stat-label">Samples Drawn</span>
+      <span class="stat-value" id="samples-count">0</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Mean of Means</span>
+      <span class="stat-value" id="mean-of-means">-</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Std Error</span>
+      <span class="stat-value" id="std-error">-</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .controls {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .control-group {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .control-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+    margin-bottom: 0.5rem;
+  }
+
+  .control-group input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: var(--zinc-700);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .control-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--cyan-500);
+    cursor: pointer;
+  }
+
+  .sample-btn {
+    padding: 0.75rem 1.25rem;
+    background: var(--emerald-500);
+    color: var(--zinc-950);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .sample-btn:hover {
+    background: var(--emerald-400);
+  }
+
+  .reset-btn {
+    padding: 0.75rem 1.25rem;
+    background: var(--zinc-700);
+    color: var(--zinc-100);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .reset-btn:hover {
+    background: var(--zinc-600);
+  }
+
+  .charts-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .chart-box {
+    flex: 1;
+    background-color: var(--zinc-800);
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .chart-box h4 {
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+    margin: 0 0 0.5rem 0;
+    text-align: center;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .stat-item {
+    flex: 1;
+    background-color: var(--zinc-800);
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--zinc-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--cyan-500);
+  }
+
+  @media (max-width: 600px) {
+    .charts-row {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script>
+  const populationCanvas = document.getElementById('population-chart') as HTMLCanvasElement;
+  const meansCanvas = document.getElementById('means-chart') as HTMLCanvasElement;
+  const popCtx = populationCanvas.getContext('2d')!;
+  const meansCtx = meansCanvas.getContext('2d')!;
+
+  const nSlider = document.getElementById('n-slider') as HTMLInputElement;
+  const nValue = document.getElementById('n-value')!;
+  const sampleBtn = document.getElementById('sample-btn')!;
+  const resetBtn = document.getElementById('reset-btn')!;
+  const samplesCount = document.getElementById('samples-count')!;
+  const meanOfMeans = document.getElementById('mean-of-means')!;
+  const stdError = document.getElementById('std-error')!;
+
+  let sampleMeans: number[] = [];
+
+  function drawPopulation() {
+    const width = populationCanvas.width;
+    const height = populationCanvas.height;
+    const padding = { top: 10, right: 10, bottom: 30, left: 10 };
+
+    popCtx.clearRect(0, 0, width, height);
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // Draw uniform distribution bars
+    const numBars = 10;
+    const barWidth = chartWidth / numBars - 2;
+    const barHeight = chartHeight * 0.7;
+
+    for (let i = 0; i < numBars; i++) {
+      const x = padding.left + i * (chartWidth / numBars) + 1;
+      const y = padding.top + chartHeight - barHeight;
+
+      popCtx.fillStyle = '#8b5cf6';
+      popCtx.fillRect(x, y, barWidth, barHeight);
+    }
+
+    // X-axis
+    popCtx.strokeStyle = '#52525b';
+    popCtx.beginPath();
+    popCtx.moveTo(padding.left, height - padding.bottom);
+    popCtx.lineTo(width - padding.right, height - padding.bottom);
+    popCtx.stroke();
+
+    // Labels
+    popCtx.fillStyle = '#71717a';
+    popCtx.font = '10px Inter, sans-serif';
+    popCtx.textAlign = 'center';
+    popCtx.fillText('0', padding.left, height - 10);
+    popCtx.fillText('10', width - padding.right, height - 10);
+  }
+
+  function drawMeansDistribution() {
+    const width = meansCanvas.width;
+    const height = meansCanvas.height;
+    const padding = { top: 10, right: 10, bottom: 30, left: 10 };
+
+    meansCtx.clearRect(0, 0, width, height);
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    if (sampleMeans.length === 0) {
+      meansCtx.fillStyle = '#52525b';
+      meansCtx.font = '12px Inter, sans-serif';
+      meansCtx.textAlign = 'center';
+      meansCtx.fillText('Click "Draw Samples" to start', width / 2, height / 2);
+      return;
+    }
+
+    // Create histogram
+    const numBins = 20;
+    const bins = new Array(numBins).fill(0);
+    const minVal = 0;
+    const maxVal = 10;
+
+    sampleMeans.forEach(mean => {
+      const binIndex = Math.min(numBins - 1, Math.floor((mean - minVal) / (maxVal - minVal) * numBins));
+      bins[binIndex]++;
+    });
+
+    const maxBin = Math.max(...bins, 1);
+    const barWidth = chartWidth / numBins - 1;
+
+    // Draw bars
+    bins.forEach((count, i) => {
+      const barHeight = (count / maxBin) * chartHeight * 0.9;
+      const x = padding.left + i * (chartWidth / numBins);
+      const y = padding.top + chartHeight - barHeight;
+
+      meansCtx.fillStyle = '#06b6d4';
+      meansCtx.fillRect(x, y, barWidth, barHeight);
+    });
+
+    // Draw normal curve overlay if enough samples
+    if (sampleMeans.length >= 50) {
+      const mean = sampleMeans.reduce((a, b) => a + b) / sampleMeans.length;
+      const variance = sampleMeans.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / sampleMeans.length;
+      const std = Math.sqrt(variance);
+
+      meansCtx.beginPath();
+      meansCtx.strokeStyle = '#f59e0b';
+      meansCtx.lineWidth = 2;
+
+      for (let px = 0; px <= chartWidth; px++) {
+        const x = minVal + (px / chartWidth) * (maxVal - minVal);
+        const normalY = (1 / (std * Math.sqrt(2 * Math.PI))) * Math.exp(-Math.pow(x - mean, 2) / (2 * std * std));
+        const scaledY = normalY * sampleMeans.length * ((maxVal - minVal) / numBins);
+        const canvasY = padding.top + chartHeight - (scaledY / maxBin) * chartHeight * 0.9;
+
+        if (px === 0) meansCtx.moveTo(padding.left + px, canvasY);
+        else meansCtx.lineTo(padding.left + px, canvasY);
+      }
+      meansCtx.stroke();
+    }
+
+    // X-axis
+    meansCtx.strokeStyle = '#52525b';
+    meansCtx.beginPath();
+    meansCtx.moveTo(padding.left, height - padding.bottom);
+    meansCtx.lineTo(width - padding.right, height - padding.bottom);
+    meansCtx.stroke();
+
+    meansCtx.fillStyle = '#71717a';
+    meansCtx.font = '10px Inter, sans-serif';
+    meansCtx.textAlign = 'center';
+    meansCtx.fillText('0', padding.left, height - 10);
+    meansCtx.fillText('10', width - padding.right, height - 10);
+  }
+
+  function drawSamples() {
+    const n = parseInt(nSlider.value);
+
+    for (let i = 0; i < 100; i++) {
+      // Draw n samples from uniform(0, 10)
+      let sum = 0;
+      for (let j = 0; j < n; j++) {
+        sum += Math.random() * 10;
+      }
+      sampleMeans.push(sum / n);
+    }
+
+    updateStats();
+    drawMeansDistribution();
+  }
+
+  function updateStats() {
+    samplesCount.textContent = sampleMeans.length.toString();
+
+    if (sampleMeans.length > 0) {
+      const mean = sampleMeans.reduce((a, b) => a + b) / sampleMeans.length;
+      meanOfMeans.textContent = mean.toFixed(2);
+
+      const variance = sampleMeans.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / sampleMeans.length;
+      stdError.textContent = Math.sqrt(variance).toFixed(2);
+    } else {
+      meanOfMeans.textContent = '-';
+      stdError.textContent = '-';
+    }
+  }
+
+  function reset() {
+    sampleMeans = [];
+    updateStats();
+    drawMeansDistribution();
+  }
+
+  nSlider.addEventListener('input', () => {
+    nValue.textContent = nSlider.value;
+    reset();
+  });
+
+  sampleBtn.addEventListener('click', drawSamples);
+  resetBtn.addEventListener('click', reset);
+
+  drawPopulation();
+  drawMeansDistribution();
+</script>

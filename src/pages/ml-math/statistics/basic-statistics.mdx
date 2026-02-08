@@ -1,0 +1,169 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Basic Statistics
+---
+
+import Callout from '../../../components/Callout.astro';
+import Example from '../../../components/Example.astro';
+import Formula from '../../../components/Formula.astro';
+import SkewnessExplorer from '../../../components/SkewnessExplorer.astro';
+
+# Basic Statistics for Machine Learning
+
+Statistics forms the backbone of machine learning. Before diving into complex algorithms, you need to understand how to describe, summarize, and interpret data. This lesson covers the fundamental concepts you'll use throughout your ML journey.
+
+## Measures of Central Tendency
+
+Central tendency tells us where the "center" of our data lies. There are three main measures: mean, median, and mode.
+
+### The Mean
+
+<Callout type="definition" title="Definition: Mean">
+The **mean** (or average) is the sum of all values divided by the number of values. It represents the "balance point" of your data.
+</Callout>
+
+<Formula name="Mean Formula">
+$$\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$$
+</Formula>
+
+Where:
+- $\bar{x}$ is the mean
+- $n$ is the number of observations
+- $x_i$ is each individual value
+
+<Example title="Calculating the Mean">
+Suppose we have the test scores: **78, 85, 92, 88, 76**
+
+$$\bar{x} = \frac{78 + 85 + 92 + 88 + 76}{5} = \frac{419}{5} = 83.8$$
+
+The mean test score is **83.8**.
+</Example>
+
+<Callout type="tip" title="When to use the Mean">
+The mean is best used when your data is **symmetrically distributed** without extreme outliers. It's sensitive to outliers, which can pull the mean toward extreme values.
+</Callout>
+
+### The Median
+
+<Callout type="definition" title="Definition: Median">
+The **median** is the middle value when data is arranged in order. If there's an even number of values, it's the average of the two middle values.
+</Callout>
+
+The median is more **robust** to outliers than the mean, making it useful for skewed distributions.
+
+<Example title="Finding the Median">
+**Odd number of values:** 3, 7, 9, 12, 15
+
+The median is **9** (the middle value).
+
+**Even number of values:** 3, 7, 9, 12, 15, 18
+
+The median is $\frac{9 + 12}{2} = 10.5$
+</Example>
+
+### The Mode
+
+<Callout type="definition" title="Definition: Mode">
+The **mode** is the value that appears most frequently in a dataset. A dataset can have multiple modes (bimodal, multimodal) or no mode at all.
+</Callout>
+
+<Example title="Finding the Mode">
+Dataset: 2, 3, 3, 5, 7, 7, 7, 9, 9
+
+The mode is **7** because it appears 3 times, more than any other value.
+</Example>
+
+## Skewness
+
+<Callout type="info" title="Understanding Skewness">
+**Skewness** measures the asymmetry of a distribution. It tells you whether data is concentrated on one side.
+</Callout>
+
+- **Positive skew (right-skewed):** Tail extends to the right. Mean > Median > Mode
+- **Negative skew (left-skewed):** Tail extends to the left. Mean < Median < Mode
+- **Zero skew:** Symmetric distribution. Mean ≈ Median ≈ Mode
+
+<SkewnessExplorer />
+
+## Measures of Spread
+
+While central tendency tells us about the center, we also need to understand how spread out our data is.
+
+### Variance
+
+<Callout type="definition" title="Definition: Variance">
+**Variance** measures the average squared deviation from the mean. It quantifies how far data points are spread from their average value.
+</Callout>
+
+<Formula name="Sample Variance">
+$$s^2 = \frac{1}{n-1}\sum_{i=1}^{n} (x_i - \bar{x})^2$$
+</Formula>
+
+<Callout type="warning" title="Population vs Sample Variance">
+We divide by $n-1$ for **sample variance** (Bessel's correction) to get an unbiased estimate. For **population variance**, divide by $n$.
+</Callout>
+
+### Standard Deviation
+
+<Callout type="definition" title="Definition: Standard Deviation">
+**Standard deviation** is the square root of variance. It's in the same units as the original data, making it more interpretable.
+</Callout>
+
+<Formula name="Standard Deviation">
+$$s = \sqrt{\frac{1}{n-1}\sum_{i=1}^{n} (x_i - \bar{x})^2}$$
+</Formula>
+
+<Example title="Computing Standard Deviation">
+Data: 4, 8, 6, 5, 3
+
+1. Calculate mean: $\bar{x} = \frac{4+8+6+5+3}{5} = 5.2$
+
+2. Calculate squared deviations:
+   - $(4-5.2)^2 = 1.44$
+   - $(8-5.2)^2 = 7.84$
+   - $(6-5.2)^2 = 0.64$
+   - $(5-5.2)^2 = 0.04$
+   - $(3-5.2)^2 = 4.84$
+
+3. Sum: $14.8$
+
+4. Variance: $s^2 = \frac{14.8}{4} = 3.7$
+
+5. Standard deviation: $s = \sqrt{3.7} \approx 1.92$
+</Example>
+
+### Range and IQR
+
+The **range** is simply the difference between the maximum and minimum values:
+
+$$\text{Range} = x_{max} - x_{min}$$
+
+The **Interquartile Range (IQR)** is more robust:
+
+$$\text{IQR} = Q_3 - Q_1$$
+
+Where $Q_1$ is the 25th percentile and $Q_3$ is the 75th percentile.
+
+## Summary Table
+
+| Metric | Formula | Best For |
+|--------|---------|----------|
+| Mean | $\frac{\sum x_i}{n}$ | Symmetric data |
+| Median | Middle value | Skewed data |
+| Mode | Most frequent | Categorical data |
+| Variance | $\frac{\sum(x_i - \bar{x})^2}{n-1}$ | Measuring spread |
+| Std Dev | $\sqrt{\text{Variance}}$ | Same units as data |
+| IQR | $Q_3 - Q_1$ | Robust to outliers |
+
+## Key Takeaways
+
+<Callout type="tip" title="Remember">
+- **Mean** is sensitive to outliers; **median** is robust
+- **Variance** and **standard deviation** measure spread
+- Always consider the **shape of your distribution** when choosing statistics
+- In ML, these statistics help you understand your features before modeling
+</Callout>
+
+---
+
+**Next:** [Probability Distributions](/ml-math/statistics/probability-distributions)

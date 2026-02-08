@@ -1,0 +1,246 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Learning Rate Comparison</h3>
+  <p class="viz-description">See how different learning rates affect convergence. Too small = slow, too large = oscillates/diverges.</p>
+
+  <div class="comparison-grid">
+    <div class="chart-box">
+      <h4>Too Small (0.01)</h4>
+      <canvas id="chart-small" width="250" height="200"></canvas>
+      <div class="status slow">Slow convergence</div>
+    </div>
+    <div class="chart-box">
+      <h4>Just Right (0.1)</h4>
+      <canvas id="chart-good" width="250" height="200"></canvas>
+      <div class="status good">Optimal</div>
+    </div>
+    <div class="chart-box">
+      <h4>Too Large (0.9)</h4>
+      <canvas id="chart-large" width="250" height="200"></canvas>
+      <div class="status bad">Oscillates</div>
+    </div>
+  </div>
+
+  <button id="animate-btn" class="animate-btn">Run All</button>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-box {
+    background: var(--zinc-800);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .chart-box h4 {
+    font-size: 0.9rem;
+    color: var(--zinc-300);
+    margin: 0 0 0.75rem 0;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .status {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  .status.slow {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--amber-500);
+  }
+
+  .status.good {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--emerald-500);
+  }
+
+  .status.bad {
+    background: rgba(244, 63, 94, 0.2);
+    color: var(--rose-500);
+  }
+
+  .animate-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--emerald-500);
+    color: var(--zinc-950);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .animate-btn:hover { background: var(--emerald-400); }
+  .animate-btn:disabled { background: var(--zinc-600); cursor: not-allowed; }
+</style>
+
+<script>
+  const canvasSmall = document.getElementById('chart-small') as HTMLCanvasElement;
+  const canvasGood = document.getElementById('chart-good') as HTMLCanvasElement;
+  const canvasLarge = document.getElementById('chart-large') as HTMLCanvasElement;
+  const animateBtn = document.getElementById('animate-btn')!;
+
+  const ctxSmall = canvasSmall.getContext('2d')!;
+  const ctxGood = canvasGood.getContext('2d')!;
+  const ctxLarge = canvasLarge.getContext('2d')!;
+
+  const f = (x: number) => x * x;
+  const df = (x: number) => 2 * x;
+
+  interface SimState {
+    x: number;
+    history: number[];
+    lr: number;
+    ctx: CanvasRenderingContext2D;
+    canvas: HTMLCanvasElement;
+    color: string;
+  }
+
+  const states: SimState[] = [
+    { x: 3, history: [3], lr: 0.01, ctx: ctxSmall, canvas: canvasSmall, color: '#f59e0b' },
+    { x: 3, history: [3], lr: 0.1, ctx: ctxGood, canvas: canvasGood, color: '#10b981' },
+    { x: 3, history: [3], lr: 0.9, ctx: ctxLarge, canvas: canvasLarge, color: '#f43f5e' }
+  ];
+
+  function drawChart(state: SimState) {
+    const { ctx, canvas, history, color } = state;
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 10, right: 10, bottom: 25, left: 10 };
+
+    ctx.clearRect(0, 0, width, height);
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    const xMin = -4, xMax = 4;
+    const yMin = -0.5, yMax = 10;
+
+    const toCanvasX = (x: number) => padding.left + ((x - xMin) / (xMax - xMin)) * chartWidth;
+    const toCanvasY = (y: number) => padding.top + chartHeight - ((y - yMin) / (yMax - yMin)) * chartHeight;
+
+    // Draw parabola
+    ctx.beginPath();
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 2;
+    for (let px = 0; px <= chartWidth; px++) {
+      const x = xMin + (px / chartWidth) * (xMax - xMin);
+      const y = f(x);
+      if (px === 0) ctx.moveTo(padding.left + px, toCanvasY(y));
+      else ctx.lineTo(padding.left + px, toCanvasY(y));
+    }
+    ctx.stroke();
+
+    // Draw path
+    if (history.length > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      history.forEach((x, i) => {
+        const px = toCanvasX(x);
+        const py = toCanvasY(f(x));
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+
+    // Current point
+    const currentX = history[history.length - 1];
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.arc(toCanvasX(currentX), toCanvasY(f(currentX)), 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Minimum marker
+    ctx.beginPath();
+    ctx.fillStyle = '#71717a';
+    ctx.arc(toCanvasX(0), toCanvasY(0), 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function reset() {
+    states.forEach(state => {
+      state.x = 3;
+      state.history = [3];
+      drawChart(state);
+    });
+  }
+
+  let isRunning = false;
+
+  function animate() {
+    if (isRunning) return;
+    isRunning = true;
+    animateBtn.setAttribute('disabled', 'true');
+    reset();
+
+    let iteration = 0;
+    const maxIterations = 30;
+
+    function step() {
+      if (iteration >= maxIterations) {
+        isRunning = false;
+        animateBtn.removeAttribute('disabled');
+        return;
+      }
+
+      states.forEach(state => {
+        const grad = df(state.x);
+        state.x = state.x - state.lr * grad;
+        state.history.push(state.x);
+        drawChart(state);
+      });
+
+      iteration++;
+      setTimeout(step, 150);
+    }
+
+    step();
+  }
+
+  animateBtn.addEventListener('click', animate);
+  reset();
+</script>

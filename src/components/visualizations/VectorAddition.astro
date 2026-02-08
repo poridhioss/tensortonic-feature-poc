@@ -1,0 +1,295 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Vector Addition</h3>
+  <p class="viz-description">Drag the vector endpoints to see how vector addition works (parallelogram rule).</p>
+
+  <div class="chart-area">
+    <canvas id="vector-chart" width="500" height="400"></canvas>
+  </div>
+
+  <div class="vectors-info">
+    <div class="vector-box" style="border-color: #f43f5e;">
+      <span class="vector-label">Vector A</span>
+      <span class="vector-value" id="vector-a">(3, 2)</span>
+    </div>
+    <div class="operator">+</div>
+    <div class="vector-box" style="border-color: #3b82f6;">
+      <span class="vector-label">Vector B</span>
+      <span class="vector-value" id="vector-b">(1, 3)</span>
+    </div>
+    <div class="operator">=</div>
+    <div class="vector-box" style="border-color: #10b981;">
+      <span class="vector-label">Result A + B</span>
+      <span class="vector-value" id="vector-result">(4, 5)</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .chart-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  canvas {
+    max-width: 100%;
+    height: auto;
+    cursor: crosshair;
+  }
+
+  .vectors-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .vector-box {
+    background-color: var(--zinc-800);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+    text-align: center;
+  }
+
+  .vector-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--zinc-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .vector-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    font-family: monospace;
+  }
+
+  .operator {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--zinc-500);
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('vector-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const vectorADisplay = document.getElementById('vector-a')!;
+  const vectorBDisplay = document.getElementById('vector-b')!;
+  const vectorResultDisplay = document.getElementById('vector-result')!;
+
+  let vectorA = { x: 3, y: 2 };
+  let vectorB = { x: 1, y: 3 };
+  let dragging: 'A' | 'B' | null = null;
+
+  const scale = 40; // pixels per unit
+  const origin = { x: 250, y: 200 }; // center of canvas
+
+  function toCanvas(v: {x: number, y: number}) {
+    return { x: origin.x + v.x * scale, y: origin.y - v.y * scale };
+  }
+
+  function fromCanvas(p: {x: number, y: number}) {
+    return { x: (p.x - origin.x) / scale, y: (origin.y - p.y) / scale };
+  }
+
+  function drawArrow(from: {x: number, y: number}, to: {x: number, y: number}, color: string, lineWidth: number = 3) {
+    const headLen = 12;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const angle = Math.atan2(dy, dx);
+
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.lineCap = 'round';
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+
+    // Arrowhead
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.moveTo(to.x, to.y);
+    ctx.lineTo(to.x - headLen * Math.cos(angle - Math.PI / 6), to.y - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(to.x - headLen * Math.cos(angle + Math.PI / 6), to.y - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw grid
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 1;
+
+    for (let x = origin.x % scale; x < width; x += scale) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+
+    for (let y = origin.y % scale; y < height; y += scale) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    // Draw axes
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(0, origin.y);
+    ctx.lineTo(width, origin.y);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(origin.x, 0);
+    ctx.lineTo(origin.x, height);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#71717a';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.fillText('x', width - 15, origin.y - 10);
+    ctx.fillText('y', origin.x + 10, 15);
+
+    const result = { x: vectorA.x + vectorB.x, y: vectorA.y + vectorB.y };
+
+    // Draw parallelogram (dashed lines)
+    const pA = toCanvas(vectorA);
+    const pB = toCanvas(vectorB);
+    const pR = toCanvas(result);
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.moveTo(pA.x, pA.y);
+    ctx.lineTo(pR.x, pR.y);
+    ctx.moveTo(pB.x, pB.y);
+    ctx.lineTo(pR.x, pR.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw vectors
+    drawArrow(origin, pA, '#f43f5e', 4);  // Vector A (red)
+    drawArrow(origin, pB, '#3b82f6', 4);  // Vector B (blue)
+    drawArrow(origin, pR, '#10b981', 4);  // Result (green)
+
+    // Draw draggable endpoints
+    ctx.beginPath();
+    ctx.fillStyle = '#f43f5e';
+    ctx.arc(pA.x, pA.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = '#3b82f6';
+    ctx.arc(pB.x, pB.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Labels
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillText('A', pA.x + 12, pA.y - 8);
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillText('B', pB.x + 12, pB.y - 8);
+    ctx.fillStyle = '#10b981';
+    ctx.fillText('A+B', pR.x + 12, pR.y - 8);
+
+    // Update displays
+    vectorADisplay.textContent = `(${vectorA.x.toFixed(1)}, ${vectorA.y.toFixed(1)})`;
+    vectorBDisplay.textContent = `(${vectorB.x.toFixed(1)}, ${vectorB.y.toFixed(1)})`;
+    vectorResultDisplay.textContent = `(${result.x.toFixed(1)}, ${result.y.toFixed(1)})`;
+  }
+
+  function getMousePos(e: MouseEvent) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    const pos = getMousePos(e);
+    const pA = toCanvas(vectorA);
+    const pB = toCanvas(vectorB);
+
+    if (Math.hypot(pos.x - pA.x, pos.y - pA.y) < 15) {
+      dragging = 'A';
+    } else if (Math.hypot(pos.x - pB.x, pos.y - pB.y) < 15) {
+      dragging = 'B';
+    }
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+
+    const pos = getMousePos(e);
+    const vec = fromCanvas(pos);
+
+    // Clamp to reasonable range
+    vec.x = Math.max(-5, Math.min(5, vec.x));
+    vec.y = Math.max(-4, Math.min(4, vec.y));
+
+    // Snap to grid
+    vec.x = Math.round(vec.x * 2) / 2;
+    vec.y = Math.round(vec.y * 2) / 2;
+
+    if (dragging === 'A') {
+      vectorA = vec;
+    } else {
+      vectorB = vec;
+    }
+
+    draw();
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    dragging = null;
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    dragging = null;
+  });
+
+  draw();
+</script>

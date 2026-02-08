@@ -1,0 +1,80 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="ML Math" currentPath="/ml-math">
+  <h1>Machine Learning Math</h1>
+  <p>
+    Welcome to ML Math! This course will help you build a strong mathematical foundation
+    for machine learning. Choose a topic from the sidebar to get started.
+  </p>
+
+  <div class="modules">
+    <a href="/ml-math/statistics/basic-statistics" class="module-card">
+      <div class="module-content">
+        <h3>Statistics</h3>
+        <p>Learn descriptive statistics, probability distributions, and hypothesis testing.</p>
+        <span class="module-count">15 lessons</span>
+      </div>
+    </a>
+
+    <a href="/ml-math/linear-algebra/vectors-matrices" class="module-card">
+      <div class="module-content">
+        <h3>Linear Algebra</h3>
+        <p>Master vectors, matrices, and linear transformations essential for ML.</p>
+        <span class="module-count">12 lessons</span>
+      </div>
+    </a>
+
+    <a href="/ml-math/calculus/derivatives" class="module-card">
+      <div class="module-content">
+        <h3>Calculus</h3>
+        <p>Understand derivatives, gradients, and optimization techniques.</p>
+        <span class="module-count">10 lessons</span>
+      </div>
+    </a>
+  </div>
+</DocsLayout>
+
+<style>
+  .modules {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .module-card {
+    display: block;
+    padding: 1.5rem;
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-800);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .module-card:hover {
+    border-color: var(--zinc-700);
+    transform: translateX(4px);
+    text-decoration: none;
+  }
+
+  .module-content h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--zinc-100);
+    font-size: 1.25rem;
+  }
+
+  .module-content p {
+    margin: 0 0 0.75rem 0;
+    color: var(--zinc-400);
+    font-size: 0.95rem;
+  }
+
+  .module-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--emerald-500);
+  }
+</style>

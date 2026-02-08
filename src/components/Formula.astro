@@ -1,0 +1,44 @@
+---
+interface Props {
+  name?: string;
+}
+
+const { name } = Astro.props;
+---
+
+<div class="formula">
+  {name && <div class="formula-name">{name}</div>}
+  <div class="formula-content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .formula {
+    background: linear-gradient(135deg, var(--zinc-900) 0%, var(--zinc-800) 100%);
+    border: 1px solid var(--zinc-700);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    text-align: center;
+  }
+
+  .formula-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--emerald-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+  }
+
+  .formula-content {
+    color: var(--zinc-100);
+  }
+
+  .formula-content :global(.katex-display) {
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+</style>

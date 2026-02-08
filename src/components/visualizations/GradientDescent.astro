@@ -1,0 +1,367 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Gradient Descent Visualization</h3>
+  <p class="viz-description">Watch how gradient descent finds the minimum of a function. Adjust learning rate to see its effect.</p>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Learning Rate (alpha): <span id="lr-value">0.1</span></label>
+      <input type="range" id="lr-slider" min="0.01" max="0.5" step="0.01" value="0.1" />
+    </div>
+    <div class="control-group">
+      <label>Starting Point: <span id="start-value">-2.5</span></label>
+      <input type="range" id="start-slider" min="-3" max="3" step="0.1" value="-2.5" />
+    </div>
+    <button id="run-btn" class="run-btn">Run Gradient Descent</button>
+    <button id="reset-btn" class="reset-btn">Reset</button>
+  </div>
+
+  <div class="chart-area">
+    <canvas id="gd-chart" width="600" height="350"></canvas>
+  </div>
+
+  <div class="info-row">
+    <div class="info-box">
+      <span class="info-label">Iteration</span>
+      <span class="info-value" id="iteration">0</span>
+    </div>
+    <div class="info-box">
+      <span class="info-label">Current x</span>
+      <span class="info-value" id="current-x">-2.50</span>
+    </div>
+    <div class="info-box">
+      <span class="info-label">f(x)</span>
+      <span class="info-value" id="current-fx">6.25</span>
+    </div>
+    <div class="info-box">
+      <span class="info-label">Gradient</span>
+      <span class="info-value" id="current-grad">-5.00</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .controls {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+
+  .control-group {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .control-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: var(--zinc-700);
+    border-radius: 3px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--cyan-500);
+    cursor: pointer;
+  }
+
+  .run-btn {
+    padding: 0.75rem 1.25rem;
+    background: var(--emerald-500);
+    color: var(--zinc-950);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .run-btn:hover { background: var(--emerald-400); }
+  .run-btn:disabled { background: var(--zinc-600); cursor: not-allowed; }
+
+  .reset-btn {
+    padding: 0.75rem 1.25rem;
+    background: var(--zinc-700);
+    color: var(--zinc-100);
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .chart-area { margin-bottom: 1rem; }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .info-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .info-box {
+    flex: 1;
+    min-width: 100px;
+    background: var(--zinc-800);
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .info-label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--zinc-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cyan-500);
+    font-family: monospace;
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('gd-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const lrSlider = document.getElementById('lr-slider') as HTMLInputElement;
+  const startSlider = document.getElementById('start-slider') as HTMLInputElement;
+  const lrValue = document.getElementById('lr-value')!;
+  const startValue = document.getElementById('start-value')!;
+  const runBtn = document.getElementById('run-btn')!;
+  const resetBtn = document.getElementById('reset-btn')!;
+  const iterationDisplay = document.getElementById('iteration')!;
+  const currentXDisplay = document.getElementById('current-x')!;
+  const currentFxDisplay = document.getElementById('current-fx')!;
+  const currentGradDisplay = document.getElementById('current-grad')!;
+
+  // Function: f(x) = x^2 (simple parabola with minimum at 0)
+  const f = (x: number) => x * x;
+  const df = (x: number) => 2 * x;
+
+  let history: {x: number, fx: number}[] = [];
+  let animationId: number | null = null;
+  let isRunning = false;
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+
+    ctx.clearRect(0, 0, width, height);
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    const xMin = -4, xMax = 4;
+    const yMin = -0.5, yMax = 10;
+
+    const toCanvasX = (x: number) => padding.left + ((x - xMin) / (xMax - xMin)) * chartWidth;
+    const toCanvasY = (y: number) => padding.top + chartHeight - ((y - yMin) / (yMax - yMin)) * chartHeight;
+
+    // Grid
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 1;
+    for (let x = -4; x <= 4; x++) {
+      ctx.beginPath();
+      ctx.moveTo(toCanvasX(x), padding.top);
+      ctx.lineTo(toCanvasX(x), height - padding.bottom);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= 10; y += 2) {
+      ctx.beginPath();
+      ctx.moveTo(padding.left, toCanvasY(y));
+      ctx.lineTo(width - padding.right, toCanvasY(y));
+      ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, toCanvasY(0));
+    ctx.lineTo(width - padding.right, toCanvasY(0));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(toCanvasX(0), padding.top);
+    ctx.lineTo(toCanvasX(0), height - padding.bottom);
+    ctx.stroke();
+
+    // Draw parabola
+    ctx.beginPath();
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.lineWidth = 3;
+    for (let px = 0; px <= chartWidth; px++) {
+      const x = xMin + (px / chartWidth) * (xMax - xMin);
+      const y = f(x);
+      const canvasX = padding.left + px;
+      const canvasY = toCanvasY(y);
+      if (px === 0) ctx.moveTo(canvasX, canvasY);
+      else ctx.lineTo(canvasX, canvasY);
+    }
+    ctx.stroke();
+
+    // Draw minimum point
+    ctx.beginPath();
+    ctx.fillStyle = '#10b981';
+    ctx.arc(toCanvasX(0), toCanvasY(0), 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#10b981';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillText('minimum', toCanvasX(0) + 10, toCanvasY(0) + 15);
+
+    // Draw path
+    if (history.length > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.5)';
+      ctx.lineWidth = 2;
+      history.forEach((point, i) => {
+        const px = toCanvasX(point.x);
+        const py = toCanvasY(point.fx);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+
+      // Draw points
+      history.forEach((point, i) => {
+        ctx.beginPath();
+        ctx.fillStyle = i === history.length - 1 ? '#f43f5e' : 'rgba(6, 182, 212, 0.7)';
+        ctx.arc(toCanvasX(point.x), toCanvasY(point.fx), i === history.length - 1 ? 8 : 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Starting point marker
+    if (history.length === 0) {
+      const startX = parseFloat(startSlider.value);
+      ctx.beginPath();
+      ctx.fillStyle = '#f43f5e';
+      ctx.arc(toCanvasX(startX), toCanvasY(f(startX)), 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Labels
+    ctx.fillStyle = '#71717a';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (let x = -4; x <= 4; x += 2) {
+      ctx.fillText(x.toString(), toCanvasX(x), height - 15);
+    }
+
+    // Function label
+    ctx.fillStyle = '#8b5cf6';
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillText('f(x) = x2', width - padding.right - 40, padding.top + 20);
+  }
+
+  function updateDisplays(iteration: number, x: number) {
+    iterationDisplay.textContent = iteration.toString();
+    currentXDisplay.textContent = x.toFixed(4);
+    currentFxDisplay.textContent = f(x).toFixed(4);
+    currentGradDisplay.textContent = df(x).toFixed(4);
+  }
+
+  function runGradientDescent() {
+    if (isRunning) return;
+    isRunning = true;
+    runBtn.setAttribute('disabled', 'true');
+
+    const lr = parseFloat(lrSlider.value);
+    let x = parseFloat(startSlider.value);
+    history = [{ x, fx: f(x) }];
+
+    let iteration = 0;
+    const maxIterations = 50;
+
+    function step() {
+      if (iteration >= maxIterations || Math.abs(df(x)) < 0.001) {
+        isRunning = false;
+        runBtn.removeAttribute('disabled');
+        return;
+      }
+
+      const grad = df(x);
+      x = x - lr * grad;
+      iteration++;
+
+      history.push({ x, fx: f(x) });
+      updateDisplays(iteration, x);
+      draw();
+
+      animationId = requestAnimationFrame(() => setTimeout(step, 100));
+    }
+
+    step();
+  }
+
+  function reset() {
+    if (animationId) cancelAnimationFrame(animationId);
+    isRunning = false;
+    runBtn.removeAttribute('disabled');
+    history = [];
+    updateDisplays(0, parseFloat(startSlider.value));
+    draw();
+  }
+
+  lrSlider.addEventListener('input', () => {
+    lrValue.textContent = lrSlider.value;
+  });
+
+  startSlider.addEventListener('input', () => {
+    startValue.textContent = parseFloat(startSlider.value).toFixed(1);
+    if (!isRunning) {
+      history = [];
+      updateDisplays(0, parseFloat(startSlider.value));
+      draw();
+    }
+  });
+
+  runBtn.addEventListener('click', runGradientDescent);
+  resetBtn.addEventListener('click', reset);
+
+  updateDisplays(0, parseFloat(startSlider.value));
+  draw();
+</script>

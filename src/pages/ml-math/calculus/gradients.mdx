@@ -1,0 +1,48 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Gradients
+---
+
+import Callout from '../../../components/Callout.astro';
+import Formula from '../../../components/Formula.astro';
+
+# Gradients
+
+Gradients extend derivatives to functions of multiple variables, forming the basis of gradient descent optimization.
+
+## Partial Derivatives
+
+<Callout type="definition" title="Partial Derivative">
+For $f(x, y)$, the partial derivative with respect to $x$ treats $y$ as constant:
+$$\frac{\partial f}{\partial x}$$
+</Callout>
+
+## The Gradient
+
+<Callout type="definition" title="Definition: Gradient">
+The **gradient** is a vector of all partial derivatives:
+$$\nabla f = \begin{bmatrix} \frac{\partial f}{\partial x_1} \\ \frac{\partial f}{\partial x_2} \\ \vdots \\ \frac{\partial f}{\partial x_n} \end{bmatrix}$$
+</Callout>
+
+<Callout type="info" title="Key Property">
+The gradient points in the direction of **steepest ascent**. To minimize a function, we move in the **opposite direction** of the gradient.
+</Callout>
+
+## Gradient Descent
+
+<Formula name="Gradient Descent Update">
+$$\theta_{t+1} = \theta_t - \eta \nabla L(\theta_t)$$
+</Formula>
+
+Where:
+- $\theta$ are the parameters
+- $\eta$ is the learning rate
+- $L$ is the loss function
+
+<Callout type="tip" title="ML Connection">
+Gradient descent is the primary optimization algorithm for training neural networks and many other ML models.
+</Callout>
+
+---
+
+**Next:** [Chain Rule](/ml-math/calculus/chain-rule)

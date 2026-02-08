@@ -1,0 +1,307 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Bayes' Theorem Visualizer</h3>
+  <p class="viz-description">Adjust the prior probability and test accuracy to see how the posterior probability changes.</p>
+
+  <div class="scenario">
+    <strong>Scenario:</strong> A disease affects P(Disease) of the population. A test has sensitivity (true positive rate) and specificity (true negative rate). What's the probability you have the disease given a positive test?
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>P(Disease) - Prior: <span id="prior-value">1%</span></label>
+      <input type="range" id="prior-slider" min="0.1" max="20" step="0.1" value="1" />
+    </div>
+    <div class="control-group">
+      <label>Sensitivity (True Positive): <span id="sens-value">95%</span></label>
+      <input type="range" id="sens-slider" min="50" max="100" step="1" value="95" />
+    </div>
+    <div class="control-group">
+      <label>Specificity (True Negative): <span id="spec-value">95%</span></label>
+      <input type="range" id="spec-slider" min="50" max="100" step="1" value="95" />
+    </div>
+  </div>
+
+  <div class="visual-area">
+    <canvas id="bayes-chart" width="500" height="300"></canvas>
+  </div>
+
+  <div class="result-box">
+    <div class="result-label">P(Disease | Positive Test)</div>
+    <div class="result-value" id="posterior">16.1%</div>
+    <div class="result-note" id="result-note">Even with a positive test, there's only a 16.1% chance you have the disease!</div>
+  </div>
+
+  <div class="formula-box">
+    <div class="formula">
+      P(D|+) = P(+|D) × P(D) / [P(+|D) × P(D) + P(+|¬D) × P(¬D)]
+    </div>
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1rem 0;
+  }
+
+  .scenario {
+    background: var(--zinc-800);
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+    margin-bottom: 1.5rem;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .control-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: var(--zinc-700);
+    border-radius: 3px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--cyan-500);
+    cursor: pointer;
+  }
+
+  .visual-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .result-box {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15));
+    border: 1px solid var(--emerald-500);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .result-label {
+    font-size: 0.85rem;
+    color: var(--zinc-400);
+    margin-bottom: 0.5rem;
+  }
+
+  .result-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--emerald-500);
+    margin-bottom: 0.5rem;
+  }
+
+  .result-note {
+    font-size: 0.9rem;
+    color: var(--zinc-300);
+  }
+
+  .formula-box {
+    background: var(--zinc-800);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .formula {
+    font-family: monospace;
+    color: var(--cyan-500);
+    font-size: 0.85rem;
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('bayes-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const priorSlider = document.getElementById('prior-slider') as HTMLInputElement;
+  const sensSlider = document.getElementById('sens-slider') as HTMLInputElement;
+  const specSlider = document.getElementById('spec-slider') as HTMLInputElement;
+
+  const priorValue = document.getElementById('prior-value')!;
+  const sensValue = document.getElementById('sens-value')!;
+  const specValue = document.getElementById('spec-value')!;
+  const posteriorDisplay = document.getElementById('posterior')!;
+  const resultNote = document.getElementById('result-note')!;
+
+  function calculate() {
+    const prior = parseFloat(priorSlider.value) / 100;
+    const sensitivity = parseFloat(sensSlider.value) / 100;
+    const specificity = parseFloat(specSlider.value) / 100;
+
+    // Bayes' theorem
+    const pPositiveGivenDisease = sensitivity;
+    const pPositiveGivenNoDisease = 1 - specificity;
+    const pNoDisease = 1 - prior;
+
+    const pPositive = pPositiveGivenDisease * prior + pPositiveGivenNoDisease * pNoDisease;
+    const posterior = (pPositiveGivenDisease * prior) / pPositive;
+
+    return { prior, sensitivity, specificity, posterior, pPositive, pPositiveGivenNoDisease, pNoDisease };
+  }
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const { prior, sensitivity, specificity, posterior, pPositiveGivenNoDisease, pNoDisease } = calculate();
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Update displays
+    priorValue.textContent = `${(prior * 100).toFixed(1)}%`;
+    sensValue.textContent = `${(sensitivity * 100).toFixed(0)}%`;
+    specValue.textContent = `${(specificity * 100).toFixed(0)}%`;
+    posteriorDisplay.textContent = `${(posterior * 100).toFixed(1)}%`;
+
+    // Note
+    if (posterior < 0.5) {
+      resultNote.textContent = `Surprisingly, even with a positive test, there's only a ${(posterior * 100).toFixed(1)}% chance you have the disease!`;
+    } else {
+      resultNote.textContent = `With these parameters, a positive test means ${(posterior * 100).toFixed(1)}% chance of disease.`;
+    }
+
+    // Draw tree diagram
+    const startX = 50;
+    const startY = height / 2;
+
+    // Population split
+    const diseaseY = 80;
+    const noDiseaseY = height - 80;
+
+    // Draw main branches
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 2;
+
+    // Disease branch
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(150, diseaseY);
+    ctx.stroke();
+
+    // No disease branch
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(150, noDiseaseY);
+    ctx.stroke();
+
+    // Labels
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillText(`Disease: ${(prior * 100).toFixed(1)}%`, 160, diseaseY);
+    ctx.fillStyle = '#10b981';
+    ctx.fillText(`No Disease: ${((1-prior) * 100).toFixed(1)}%`, 160, noDiseaseY);
+
+    // Test results
+    const testX = 300;
+
+    // True positive (Disease + Positive)
+    ctx.strokeStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.moveTo(250, diseaseY);
+    ctx.lineTo(testX, diseaseY - 30);
+    ctx.stroke();
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText(`+ Test: ${(sensitivity * 100).toFixed(0)}%`, testX + 10, diseaseY - 30);
+
+    // False negative
+    ctx.strokeStyle = '#71717a';
+    ctx.beginPath();
+    ctx.moveTo(250, diseaseY);
+    ctx.lineTo(testX, diseaseY + 30);
+    ctx.stroke();
+    ctx.fillStyle = '#71717a';
+    ctx.fillText(`- Test: ${((1-sensitivity) * 100).toFixed(0)}%`, testX + 10, diseaseY + 30);
+
+    // False positive (No Disease + Positive)
+    ctx.strokeStyle = '#f59e0b';
+    ctx.beginPath();
+    ctx.moveTo(250, noDiseaseY);
+    ctx.lineTo(testX, noDiseaseY - 30);
+    ctx.stroke();
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillText(`+ Test: ${(pPositiveGivenNoDisease * 100).toFixed(0)}%`, testX + 10, noDiseaseY - 30);
+
+    // True negative
+    ctx.strokeStyle = '#10b981';
+    ctx.beginPath();
+    ctx.moveTo(250, noDiseaseY);
+    ctx.lineTo(testX, noDiseaseY + 30);
+    ctx.stroke();
+    ctx.fillStyle = '#10b981';
+    ctx.fillText(`- Test: ${(specificity * 100).toFixed(0)}%`, testX + 10, noDiseaseY + 30);
+
+    // Final probabilities
+    const finalX = 420;
+
+    // True positive probability
+    const tpProb = sensitivity * prior;
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.fillText(`${(tpProb * 100).toFixed(2)}%`, finalX, diseaseY - 30);
+
+    // False positive probability
+    const fpProb = pPositiveGivenNoDisease * pNoDisease;
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillText(`${(fpProb * 100).toFixed(2)}%`, finalX, noDiseaseY - 30);
+
+    // Highlight the key insight
+    ctx.fillStyle = '#06b6d4';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillText('True Positives', finalX - 10, diseaseY - 45);
+    ctx.fillText('False Positives', finalX - 10, noDiseaseY - 45);
+  }
+
+  priorSlider.addEventListener('input', draw);
+  sensSlider.addEventListener('input', draw);
+  specSlider.addEventListener('input', draw);
+
+  draw();
+</script>

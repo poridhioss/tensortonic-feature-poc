@@ -1,0 +1,449 @@
+---
+
+---
+
+<div class="skewness-explorer">
+  <h3 class="explorer-title">Skewness Explorer</h3>
+  <p class="explorer-description">
+    Drag the slider to see how skewness affects the shape of the distribution and the relationship between Mean, Median, and Mode.
+  </p>
+
+  <div class="slider-container">
+    <span class="slider-label">Skewness</span>
+    <div class="slider-row">
+      <span class="slider-end">Left</span>
+      <input type="range" id="skewness-slider" min="-1" max="1" step="0.01" value="0" />
+      <span class="slider-end">Right</span>
+    </div>
+    <div class="skew-badge" id="skew-badge">Normal (Symmetric)</div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <span class="dot dot-mean"></span>
+      <span>Mean</span>
+    </div>
+    <div class="legend-item">
+      <span class="dot dot-median"></span>
+      <span>Median</span>
+    </div>
+    <div class="legend-item">
+      <span class="dot dot-mode"></span>
+      <span>Mode</span>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <div class="y-axis-label">Frequency</div>
+    <canvas id="skewness-chart" width="600" height="300"></canvas>
+  </div>
+
+  <div class="x-axis-label">Value</div>
+
+  <div class="relationship-box">
+    <div class="relationship-text" id="relationship-text">Mean = Median = Mode</div>
+    <div class="relationship-description" id="relationship-description">
+      In a symmetric distribution, all three measures are equal.
+    </div>
+  </div>
+</div>
+
+<style>
+  .skewness-explorer {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .explorer-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .explorer-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .slider-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .slider-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+    margin-bottom: 0.5rem;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .slider-end {
+    font-size: 0.8rem;
+    color: var(--zinc-500);
+    min-width: 35px;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, var(--cyan-500) 0%, var(--cyan-500) 50%, var(--zinc-700) 50%, var(--zinc-700) 100%);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--cyan-500);
+    cursor: pointer;
+    border: 2px solid var(--zinc-900);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--cyan-500);
+    cursor: pointer;
+    border: 2px solid var(--zinc-900);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .skew-badge {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    background-color: var(--zinc-800);
+    color: var(--zinc-300);
+    float: right;
+  }
+
+  .skew-badge.left-skewed {
+    background-color: rgba(6, 182, 212, 0.2);
+    color: var(--cyan-500);
+  }
+
+  .skew-badge.right-skewed {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: var(--amber-500);
+  }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    clear: both;
+    padding-top: 0.5rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--zinc-300);
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot-mean {
+    background-color: #10b981;
+  }
+
+  .dot-median {
+    background-color: #06b6d4;
+  }
+
+  .dot-mode {
+    background-color: #f59e0b;
+  }
+
+  .chart-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .y-axis-label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 0.75rem;
+    color: var(--zinc-500);
+    margin-right: 0.5rem;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    max-width: 600px;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .x-axis-label {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--zinc-500);
+    margin-top: 0.5rem;
+  }
+
+  .relationship-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: var(--zinc-800);
+    border-radius: 8px;
+    text-align: center;
+    border-left: 4px solid var(--zinc-600);
+  }
+
+  .relationship-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin-bottom: 0.25rem;
+  }
+
+  .relationship-text .mean {
+    color: #10b981;
+  }
+
+  .relationship-text .median {
+    color: #06b6d4;
+  }
+
+  .relationship-text .mode {
+    color: #f59e0b;
+  }
+
+  .relationship-description {
+    font-size: 0.85rem;
+    color: var(--zinc-400);
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('skewness-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const slider = document.getElementById('skewness-slider') as HTMLInputElement;
+  const badge = document.getElementById('skew-badge')!;
+  const relationshipText = document.getElementById('relationship-text')!;
+  const relationshipDescription = document.getElementById('relationship-description')!;
+
+  const colors = {
+    mean: '#10b981',
+    median: '#06b6d4',
+    mode: '#f59e0b',
+    bar: '#3b82f6',
+    barLight: '#60a5fa',
+  };
+
+  function generateSkewedData(skewness: number): number[] {
+    const data: number[] = [];
+    const numBars = 15;
+
+    for (let i = 0; i < numBars; i++) {
+      let value: number;
+      const center = numBars / 2;
+
+      if (skewness === 0) {
+        // Normal distribution
+        const x = (i - center) / (numBars / 4);
+        value = Math.exp(-x * x / 2);
+      } else if (skewness > 0) {
+        // Right-skewed (positive)
+        const shift = skewness * 5;
+        const x = (i - shift) / (numBars / 3);
+        value = x > 0 ? Math.exp(-x) * (1 + skewness) : Math.exp(x * 2) * 0.3;
+      } else {
+        // Left-skewed (negative)
+        const shift = -skewness * 5;
+        const x = (numBars - 1 - i - shift) / (numBars / 3);
+        value = x > 0 ? Math.exp(-x) * (1 - skewness) : Math.exp(x * 2) * 0.3;
+      }
+
+      data.push(Math.max(0.05, value));
+    }
+
+    // Normalize
+    const max = Math.max(...data);
+    return data.map(d => d / max);
+  }
+
+  function calculateStatistics(data: number[], skewness: number) {
+    const numBars = data.length;
+
+    // Mode is at the peak
+    let modeIndex = data.indexOf(Math.max(...data));
+
+    // For skewed distributions, adjust positions
+    let meanIndex: number;
+    let medianIndex: number;
+
+    if (skewness === 0) {
+      meanIndex = medianIndex = modeIndex = numBars / 2;
+    } else if (skewness > 0) {
+      // Right-skewed: Mode < Median < Mean
+      modeIndex = Math.floor(numBars * 0.2 + (1 - skewness) * numBars * 0.3);
+      medianIndex = modeIndex + skewness * numBars * 0.15;
+      meanIndex = medianIndex + skewness * numBars * 0.2;
+    } else {
+      // Left-skewed: Mean < Median < Mode
+      modeIndex = Math.floor(numBars * 0.8 + skewness * numBars * 0.3);
+      medianIndex = modeIndex + skewness * numBars * 0.15;
+      meanIndex = medianIndex + skewness * numBars * 0.2;
+    }
+
+    return {
+      mean: Math.max(0, Math.min(numBars - 1, meanIndex)),
+      median: Math.max(0, Math.min(numBars - 1, medianIndex)),
+      mode: Math.max(0, Math.min(numBars - 1, modeIndex)),
+    };
+  }
+
+  function draw(skewness: number) {
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 40, right: 20, bottom: 30, left: 20 };
+
+    ctx.clearRect(0, 0, width, height);
+
+    const data = generateSkewedData(skewness);
+    const stats = calculateStatistics(data, skewness);
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    const barWidth = chartWidth / data.length - 4;
+
+    // Draw bars
+    data.forEach((value, i) => {
+      const x = padding.left + i * (chartWidth / data.length) + 2;
+      const barHeight = value * chartHeight * 0.8;
+      const y = height - padding.bottom - barHeight;
+
+      // Gradient based on skewness
+      const gradient = ctx.createLinearGradient(x, y, x, height - padding.bottom);
+      if (skewness > 0) {
+        gradient.addColorStop(0, '#f59e0b');
+        gradient.addColorStop(1, '#d97706');
+      } else if (skewness < 0) {
+        gradient.addColorStop(0, '#3b82f6');
+        gradient.addColorStop(1, '#2563eb');
+      } else {
+        gradient.addColorStop(0, '#8b5cf6');
+        gradient.addColorStop(1, '#7c3aed');
+      }
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, y, barWidth, barHeight);
+    });
+
+    // Helper to get x position for a statistic
+    const getX = (index: number) => padding.left + index * (chartWidth / data.length) + barWidth / 2 + 2;
+
+    // Draw indicator lines and labels
+    const drawIndicator = (index: number, color: string, label: string, offsetY: number) => {
+      const x = getX(index);
+
+      // Dashed line
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.moveTo(x, padding.top);
+      ctx.lineTo(x, height - padding.bottom + 10);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Circle at top
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(x, padding.top - 10, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Label
+      ctx.fillStyle = color;
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x, padding.top - 22);
+
+      // Circle at bottom
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(x, height - padding.bottom + 20, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Bottom label
+      ctx.fillStyle = color;
+      ctx.font = '10px Inter, sans-serif';
+      ctx.fillText(label, x, height - padding.bottom + 35);
+    };
+
+    // Draw in order based on position (back to front)
+    const indicators = [
+      { index: stats.mean, color: colors.mean, label: 'Mean' },
+      { index: stats.median, color: colors.median, label: 'Median' },
+      { index: stats.mode, color: colors.mode, label: 'Mode' },
+    ].sort((a, b) => a.index - b.index);
+
+    indicators.forEach((ind, i) => drawIndicator(ind.index, ind.color, ind.label, i * 15));
+
+    // Update badge
+    badge.className = 'skew-badge';
+    if (skewness < -0.1) {
+      badge.textContent = 'Left-Skewed (Negative)';
+      badge.classList.add('left-skewed');
+    } else if (skewness > 0.1) {
+      badge.textContent = 'Right-Skewed (Positive)';
+      badge.classList.add('right-skewed');
+    } else {
+      badge.textContent = 'Normal (Symmetric)';
+    }
+
+    // Update relationship text
+    if (skewness < -0.1) {
+      relationshipText.innerHTML = '<span class="mean">Mean</span> < <span class="median">Median</span> < <span class="mode">Mode</span>';
+      relationshipDescription.textContent = 'In left-skewed data, the tail pulls the mean to the left.';
+    } else if (skewness > 0.1) {
+      relationshipText.innerHTML = '<span class="mode">Mode</span> < <span class="median">Median</span> < <span class="mean">Mean</span>';
+      relationshipDescription.textContent = 'In right-skewed data, the tail pulls the mean to the right.';
+    } else {
+      relationshipText.innerHTML = '<span class="mean">Mean</span> = <span class="median">Median</span> = <span class="mode">Mode</span>';
+      relationshipDescription.textContent = 'In a symmetric distribution, all three measures are equal.';
+    }
+
+    // Update slider background
+    const percent = ((skewness + 1) / 2) * 100;
+    slider.style.background = `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${percent}%, #3f3f46 ${percent}%, #3f3f46 100%)`;
+  }
+
+  slider.addEventListener('input', () => {
+    draw(parseFloat(slider.value));
+  });
+
+  // Initial draw
+  draw(0);
+</script>

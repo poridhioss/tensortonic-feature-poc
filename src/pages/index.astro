@@ -1,0 +1,182 @@
+---
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ML Math | Master Machine Learning Mathematics</title>
+    <meta name="description" content="Master Machine Learning by understanding the mathematical foundations. Interactive visualizations and examples." />
+  </head>
+  <body>
+    <div class="hero">
+      <div class="hero-content">
+        <span class="badge">New Course</span>
+        <h1>Machine Learning Math</h1>
+        <p class="subtitle">
+          Master Machine Learning by building a strong mathematical foundation.
+          Learn statistics, linear algebra, calculus, and probability with
+          interactive examples and visualizations.
+        </p>
+        <div class="cta-buttons">
+          <a href="/ml-math" class="btn btn-primary">Start Learning</a>
+          <a href="/ml-math/statistics/basic-statistics" class="btn btn-secondary">Browse Topics</a>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="feature">
+          <h3>Statistics</h3>
+          <p>Descriptive statistics, distributions, hypothesis testing</p>
+        </div>
+        <div class="feature">
+          <h3>Linear Algebra</h3>
+          <p>Vectors, matrices, eigenvalues, transformations</p>
+        </div>
+        <div class="feature">
+          <h3>Calculus</h3>
+          <p>Derivatives, gradients, chain rule, optimization</p>
+        </div>
+        <div class="feature">
+          <h3>Probability</h3>
+          <p>Probability theory, Bayes theorem, random variables</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero {
+    max-width: 900px;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .hero-content {
+    margin-bottom: 4rem;
+  }
+
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--emerald-500), var(--cyan-500));
+    color: var(--zinc-950);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--zinc-100) 0%, var(--zinc-400) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 1rem 0;
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+    color: var(--zinc-400);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.875rem 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--emerald-500), var(--cyan-500));
+    color: var(--zinc-950);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+    text-decoration: none;
+  }
+
+  .btn-secondary {
+    background-color: var(--zinc-800);
+    color: var(--zinc-100);
+    border: 1px solid var(--zinc-700);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--zinc-700);
+    text-decoration: none;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .feature {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-800);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .feature:hover {
+    border-color: var(--zinc-700);
+    transform: translateY(-2px);
+  }
+
+  .feature h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .feature p {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2.5rem;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+    }
+  }
+</style>

@@ -1,0 +1,297 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Outlier Impact on Mean vs Median</h3>
+  <p class="viz-description">Drag the outlier point to see how it affects the mean (sensitive) vs median (robust).</p>
+
+  <div class="chart-area">
+    <canvas id="outlier-chart" width="600" height="250"></canvas>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box mean-box">
+      <span class="stat-label">Mean</span>
+      <span class="stat-value" id="mean-display">5.0</span>
+    </div>
+    <div class="stat-box median-box">
+      <span class="stat-label">Median</span>
+      <span class="stat-value" id="median-display">5.0</span>
+    </div>
+    <div class="stat-box diff-box">
+      <span class="stat-label">Difference</span>
+      <span class="stat-value" id="diff-display">0.0</span>
+    </div>
+  </div>
+
+  <div class="insight" id="insight">
+    The mean and median are equal when there are no outliers.
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .chart-area {
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-box {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .mean-box {
+    background-color: rgba(16, 185, 129, 0.15);
+    border: 1px solid var(--emerald-500);
+  }
+
+  .median-box {
+    background-color: rgba(6, 182, 212, 0.15);
+    border: 1px solid var(--cyan-500);
+  }
+
+  .diff-box {
+    background-color: rgba(245, 158, 11, 0.15);
+    border: 1px solid var(--amber-500);
+  }
+
+  .stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--zinc-400);
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--zinc-100);
+  }
+
+  .mean-box .stat-value { color: var(--emerald-500); }
+  .median-box .stat-value { color: var(--cyan-500); }
+  .diff-box .stat-value { color: var(--amber-500); }
+
+  .insight {
+    background-color: var(--zinc-800);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    color: var(--zinc-300);
+    font-size: 0.9rem;
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('outlier-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const meanDisplay = document.getElementById('mean-display')!;
+  const medianDisplay = document.getElementById('median-display')!;
+  const diffDisplay = document.getElementById('diff-display')!;
+  const insight = document.getElementById('insight')!;
+
+  // Fixed data points (will add draggable outlier)
+  const baseData = [2, 3, 4, 5, 6, 7, 8];
+  let outlierValue = 9;
+  let isDragging = false;
+
+  function calculateStats(data: number[]) {
+    const sorted = [...data].sort((a, b) => a - b);
+    const mean = data.reduce((a, b) => a + b, 0) / data.length;
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    return { mean, median };
+  }
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 40, right: 40, bottom: 50, left: 40 };
+
+    ctx.clearRect(0, 0, width, height);
+
+    const allData = [...baseData, outlierValue];
+    const stats = calculateStats(allData);
+
+    // Update displays
+    meanDisplay.textContent = stats.mean.toFixed(1);
+    medianDisplay.textContent = stats.median.toFixed(1);
+    diffDisplay.textContent = Math.abs(stats.mean - stats.median).toFixed(1);
+
+    // Update insight
+    const diff = stats.mean - stats.median;
+    if (Math.abs(diff) < 0.5) {
+      insight.textContent = 'The mean and median are nearly equal - no significant outlier effect.';
+    } else if (diff > 0) {
+      insight.textContent = `The outlier pulls the mean ${diff.toFixed(1)} units higher than the median. The median remains stable!`;
+    } else {
+      insight.textContent = `The outlier pulls the mean ${Math.abs(diff).toFixed(1)} units lower than the median. The median remains stable!`;
+    }
+
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+
+    // X range (0 to 20)
+    const xMin = 0;
+    const xMax = 20;
+
+    const toCanvasX = (val: number) => padding.left + ((val - xMin) / (xMax - xMin)) * chartWidth;
+
+    // Draw axis
+    ctx.beginPath();
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 2;
+    ctx.moveTo(padding.left, height - padding.bottom);
+    ctx.lineTo(width - padding.right, height - padding.bottom);
+    ctx.stroke();
+
+    // Draw tick marks
+    ctx.fillStyle = '#71717a';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (let x = 0; x <= 20; x += 5) {
+      const px = toCanvasX(x);
+      ctx.beginPath();
+      ctx.moveTo(px, height - padding.bottom);
+      ctx.lineTo(px, height - padding.bottom + 5);
+      ctx.stroke();
+      ctx.fillText(x.toString(), px, height - padding.bottom + 20);
+    }
+
+    // Draw mean line
+    const meanX = toCanvasX(stats.mean);
+    ctx.beginPath();
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([]);
+    ctx.moveTo(meanX, padding.top + 20);
+    ctx.lineTo(meanX, height - padding.bottom - 10);
+    ctx.stroke();
+
+    // Mean label
+    ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Mean', meanX, padding.top + 10);
+
+    // Draw median line
+    const medianX = toCanvasX(stats.median);
+    ctx.beginPath();
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 3;
+    ctx.moveTo(medianX, padding.top + 20);
+    ctx.lineTo(medianX, height - padding.bottom - 10);
+    ctx.stroke();
+
+    // Median label
+    ctx.fillStyle = '#06b6d4';
+    ctx.fillText('Median', medianX, padding.top + 10);
+
+    // Draw base data points
+    const pointY = height - padding.bottom - 40;
+    baseData.forEach(val => {
+      const px = toCanvasX(val);
+      ctx.beginPath();
+      ctx.fillStyle = '#8b5cf6';
+      ctx.arc(px, pointY, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(val.toString(), px, pointY);
+    });
+
+    // Draw outlier point (draggable)
+    const outlierX = toCanvasX(outlierValue);
+    ctx.beginPath();
+    ctx.fillStyle = '#f43f5e';
+    ctx.arc(outlierX, pointY, 14, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.fillText(outlierValue.toFixed(0), outlierX, pointY);
+
+    // Drag hint
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillText('← Drag me! →', outlierX, pointY + 25);
+  }
+
+  function getMouseX(e: MouseEvent): number {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    return (e.clientX - rect.left) * scaleX;
+  }
+
+  function xToValue(px: number): number {
+    const padding = { left: 40, right: 40 };
+    const chartWidth = canvas.width - padding.left - padding.right;
+    const xMin = 0;
+    const xMax = 20;
+    return xMin + ((px - padding.left) / chartWidth) * (xMax - xMin);
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    const mouseX = getMouseX(e);
+    const outlierX = 40 + ((outlierValue - 0) / 20) * (canvas.width - 80);
+    if (Math.abs(mouseX - outlierX) < 20) {
+      isDragging = true;
+    }
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      const mouseX = getMouseX(e);
+      outlierValue = Math.max(0, Math.min(20, xToValue(mouseX)));
+      draw();
+    }
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    isDragging = false;
+  });
+
+  draw();
+</script>

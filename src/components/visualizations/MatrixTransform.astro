@@ -1,0 +1,343 @@
+---
+
+---
+
+<div class="viz-container">
+  <h3 class="viz-title">Matrix Transformation</h3>
+  <p class="viz-description">Adjust the 2x2 matrix values to see how it transforms the unit square.</p>
+
+  <div class="main-content">
+    <div class="matrix-input">
+      <div class="matrix-bracket">[</div>
+      <div class="matrix-values">
+        <input type="number" id="m00" value="1" step="0.1" />
+        <input type="number" id="m01" value="0" step="0.1" />
+        <input type="number" id="m10" value="0" step="0.1" />
+        <input type="number" id="m11" value="1" step="0.1" />
+      </div>
+      <div class="matrix-bracket">]</div>
+    </div>
+
+    <div class="presets">
+      <button class="preset-btn" data-matrix="1,0,0,1">Identity</button>
+      <button class="preset-btn" data-matrix="2,0,0,2">Scale 2x</button>
+      <button class="preset-btn" data-matrix="0.707,-0.707,0.707,0.707">Rotate 45</button>
+      <button class="preset-btn" data-matrix="1,0.5,0,1">Shear X</button>
+      <button class="preset-btn" data-matrix="-1,0,0,1">Reflect Y</button>
+    </div>
+  </div>
+
+  <div class="chart-area">
+    <canvas id="transform-chart" width="500" height="400"></canvas>
+  </div>
+
+  <div class="info-row">
+    <div class="info-box">
+      <span class="info-label">Determinant</span>
+      <span class="info-value" id="determinant">1.00</span>
+    </div>
+    <div class="info-box">
+      <span class="info-label">Effect</span>
+      <span class="info-value" id="effect">No transformation</span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .viz-container {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .viz-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .viz-description {
+    font-size: 0.9rem;
+    color: var(--zinc-400);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .main-content {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .matrix-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .matrix-bracket {
+    font-size: 3rem;
+    color: var(--zinc-500);
+    font-weight: 300;
+  }
+
+  .matrix-values {
+    display: grid;
+    grid-template-columns: repeat(2, 70px);
+    gap: 0.5rem;
+  }
+
+  .matrix-values input {
+    width: 70px;
+    padding: 0.5rem;
+    background: var(--zinc-800);
+    border: 1px solid var(--zinc-700);
+    border-radius: 6px;
+    color: var(--zinc-100);
+    font-size: 1rem;
+    text-align: center;
+    font-family: monospace;
+  }
+
+  .matrix-values input:focus {
+    outline: none;
+    border-color: var(--cyan-500);
+  }
+
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .preset-btn {
+    padding: 0.5rem 0.75rem;
+    background: var(--zinc-800);
+    border: 1px solid var(--zinc-700);
+    border-radius: 6px;
+    color: var(--zinc-300);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .preset-btn:hover {
+    background: var(--zinc-700);
+    color: var(--zinc-100);
+  }
+
+  .chart-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .info-row {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .info-box {
+    flex: 1;
+    background: var(--zinc-800);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .info-label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--zinc-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .info-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--cyan-500);
+  }
+</style>
+
+<script>
+  const canvas = document.getElementById('transform-chart') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+
+  const m00 = document.getElementById('m00') as HTMLInputElement;
+  const m01 = document.getElementById('m01') as HTMLInputElement;
+  const m10 = document.getElementById('m10') as HTMLInputElement;
+  const m11 = document.getElementById('m11') as HTMLInputElement;
+  const determinantDisplay = document.getElementById('determinant')!;
+  const effectDisplay = document.getElementById('effect')!;
+
+  const scale = 60;
+  const origin = { x: 250, y: 200 };
+
+  function toCanvas(v: {x: number, y: number}) {
+    return { x: origin.x + v.x * scale, y: origin.y - v.y * scale };
+  }
+
+  function transform(v: {x: number, y: number}, matrix: number[]) {
+    return {
+      x: matrix[0] * v.x + matrix[1] * v.y,
+      y: matrix[2] * v.x + matrix[3] * v.y
+    };
+  }
+
+  function draw() {
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const matrix = [
+      parseFloat(m00.value) || 0,
+      parseFloat(m01.value) || 0,
+      parseFloat(m10.value) || 0,
+      parseFloat(m11.value) || 0
+    ];
+
+    const det = matrix[0] * matrix[3] - matrix[1] * matrix[2];
+    determinantDisplay.textContent = det.toFixed(2);
+
+    // Determine effect
+    let effect = '';
+    if (Math.abs(det) < 0.01) {
+      effect = 'Singular (collapses to line/point)';
+      determinantDisplay.style.color = '#f43f5e';
+    } else if (det < 0) {
+      effect = 'Reflection + transformation';
+      determinantDisplay.style.color = '#f59e0b';
+    } else if (Math.abs(det - 1) < 0.01) {
+      effect = 'Area preserving';
+      determinantDisplay.style.color = '#10b981';
+    } else if (det > 1) {
+      effect = `Area scaled by ${det.toFixed(1)}x`;
+      determinantDisplay.style.color = '#06b6d4';
+    } else {
+      effect = `Area scaled by ${det.toFixed(2)}x`;
+      determinantDisplay.style.color = '#06b6d4';
+    }
+    effectDisplay.textContent = effect;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw grid
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 1;
+    for (let x = origin.x % scale; x < width; x += scale) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    for (let y = origin.y % scale; y < height; y += scale) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    // Draw axes
+    ctx.strokeStyle = '#52525b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, origin.y);
+    ctx.lineTo(width, origin.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(origin.x, 0);
+    ctx.lineTo(origin.x, height);
+    ctx.stroke();
+
+    // Original unit square vertices
+    const square = [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 1, y: 1 },
+      { x: 0, y: 1 }
+    ];
+
+    // Draw original square (light)
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(139, 92, 246, 0.5)';
+    ctx.fillStyle = 'rgba(139, 92, 246, 0.1)';
+    ctx.lineWidth = 2;
+    square.forEach((v, i) => {
+      const p = toCanvas(v);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw transformed square
+    const transformed = square.map(v => transform(v, matrix));
+    ctx.beginPath();
+    ctx.strokeStyle = '#06b6d4';
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.2)';
+    ctx.lineWidth = 3;
+    transformed.forEach((v, i) => {
+      const p = toCanvas(v);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw basis vectors
+    const e1 = transform({ x: 1, y: 0 }, matrix);
+    const e2 = transform({ x: 0, y: 1 }, matrix);
+
+    // e1 (transformed x-axis)
+    ctx.beginPath();
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 3;
+    ctx.moveTo(origin.x, origin.y);
+    const e1p = toCanvas(e1);
+    ctx.lineTo(e1p.x, e1p.y);
+    ctx.stroke();
+
+    // e2 (transformed y-axis)
+    ctx.beginPath();
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 3;
+    ctx.moveTo(origin.x, origin.y);
+    const e2p = toCanvas(e2);
+    ctx.lineTo(e2p.x, e2p.y);
+    ctx.stroke();
+
+    // Labels
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillText('e1', e1p.x + 5, e1p.y - 5);
+    ctx.fillStyle = '#10b981';
+    ctx.fillText('e2', e2p.x + 5, e2p.y - 5);
+  }
+
+  [m00, m01, m10, m11].forEach(input => {
+    input.addEventListener('input', draw);
+  });
+
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const values = (btn as HTMLElement).dataset.matrix!.split(',').map(Number);
+      m00.value = values[0].toString();
+      m01.value = values[1].toString();
+      m10.value = values[2].toString();
+      m11.value = values[3].toString();
+      draw();
+    });
+  });
+
+  draw();
+</script>

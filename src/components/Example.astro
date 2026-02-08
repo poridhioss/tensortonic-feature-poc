@@ -1,0 +1,48 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = 'Example' } = Astro.props;
+---
+
+<div class="example">
+  <div class="example-header">
+    {title}
+  </div>
+  <div class="example-content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .example {
+    background-color: var(--zinc-900);
+    border: 1px solid var(--zinc-700);
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    overflow: hidden;
+  }
+
+  .example-header {
+    background-color: var(--zinc-800);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: var(--zinc-100);
+    font-size: 0.9rem;
+  }
+
+  .example-content {
+    padding: 1rem 1.25rem;
+    color: var(--zinc-300);
+  }
+
+  .example-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .example-content :global(pre) {
+    margin: 0.5rem 0;
+    background-color: var(--zinc-800);
+  }
+</style>

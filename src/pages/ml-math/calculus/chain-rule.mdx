@@ -1,0 +1,50 @@
+---
+layout: ../../../layouts/DocsLayout.astro
+title: Chain Rule
+---
+
+import Callout from '../../../components/Callout.astro';
+import Formula from '../../../components/Formula.astro';
+import Example from '../../../components/Example.astro';
+
+# The Chain Rule
+
+The chain rule is perhaps the most important calculus concept for deep learning, as it enables backpropagation.
+
+## Single Variable Chain Rule
+
+<Formula name="Chain Rule">
+$$\frac{d}{dx}[f(g(x))] = f'(g(x)) \cdot g'(x)$$
+</Formula>
+
+<Example title="Applying the Chain Rule">
+Find the derivative of $h(x) = (3x + 2)^4$
+
+Let $f(u) = u^4$ and $g(x) = 3x + 2$
+
+- $f'(u) = 4u^3$
+- $g'(x) = 3$
+
+$$h'(x) = 4(3x + 2)^3 \cdot 3 = 12(3x + 2)^3$$
+</Example>
+
+## Multivariable Chain Rule
+
+<Formula name="Multivariable Chain Rule">
+$$\frac{\partial z}{\partial t} = \frac{\partial z}{\partial x}\frac{\partial x}{\partial t} + \frac{\partial z}{\partial y}\frac{\partial y}{\partial t}$$
+</Formula>
+
+## Backpropagation
+
+<Callout type="info" title="The Connection">
+**Backpropagation** is just the chain rule applied repeatedly through neural network layers. Each layer computes:
+$$\frac{\partial L}{\partial W_l} = \frac{\partial L}{\partial a_l} \cdot \frac{\partial a_l}{\partial W_l}$$
+</Callout>
+
+<Callout type="tip" title="Why It Matters">
+Without the chain rule, we couldn't compute gradients through deep networks. It's the mathematical foundation of all neural network training.
+</Callout>
+
+---
+
+**Previous:** [Gradients](/ml-math/calculus/gradients)
